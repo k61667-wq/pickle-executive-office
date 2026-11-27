@@ -284,9 +284,15 @@ function layout() {
 
 /* ---------- 색 도구 ---------- */
 function hex2rgb(h) {
+  if (typeof h !== 'string') return [128, 128, 128];
+  if (h.slice(0, 3) === 'rgb') {
+    const m = h.match(/[\d.]+/g) || [];
+    return [Number(m[0]) || 0, Number(m[1]) || 0, Number(m[2]) || 0];
+  }
   h = h.replace('#', '');
   if (h.length === 3) h = h.split('').map(c => c + c).join('');
   const n = parseInt(h, 16);
+  if (Number.isNaN(n)) return [128, 128, 128];
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 }
 function shade(h, k) {
@@ -1041,10 +1047,15 @@ function frame(now) {
   SEATS.forEach(s => {
     if (taken.has(s.id)) return;
     const p = project(s.x, s.y, 0);
-    const pulse = 0.35 + 0.25 * Math.sin(t * 2 + s.x);
-    ctx.strokeStyle = `rgba(216,189,138,${pulse * 0.5})`;
-    ctx.lineWidth = 1.2;
-    ctx.beginPath(); ctx.ellipse(p[0], p[1], S * 0.2, S * 0.09, 0, 0, 7); ctx.stroke();
+    const pulse = 0.4 + 0.3 * Math.sin(t * 2 + s.x);
+    const gr = ctx.createRadialGradient(p[0], p[1], 1, p[0], p[1], S * 0.42);
+    gr.addColorStop(0, `rgba(216,189,138,${0.16 * pulse})`);
+    gr.addColorStop(1, 'rgba(216,189,138,0)');
+    ctx.fillStyle = gr;
+    ctx.beginPath(); ctx.ellipse(p[0], p[1], S * 0.42, S * 0.19, 0, 0, 7); ctx.fill();
+    ctx.strokeStyle = `rgba(216,189,138,${0.30 * pulse})`;
+    ctx.lineWidth = 1.1;
+    ctx.beginPath(); ctx.ellipse(p[0], p[1], S * 0.3, S * 0.135, 0, 0, 7); ctx.stroke();
   });
 
   // 부유 먼지
