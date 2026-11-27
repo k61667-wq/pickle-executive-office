@@ -1585,8 +1585,7 @@ function boot() {
     const a = Object.assign({}, saved, { kind: saved.id === 'salang' ? 'me' : 'friend' });
     ensureAgentMotion(a);
     state.agents.set(a.id, a);
-    // 자리 갱신
-    postEvent(Object.assign({ op: 'sync', kind: saved.id === 'salang' ? 'me' : 'friend', at: Date.now() }, saved));
+    // 재방문 시에는 로그를 늘리지 않는다(마지막으로 남긴 상태 그대로 표시).
   }
 
   readState();
