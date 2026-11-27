@@ -629,7 +629,7 @@ function buildItems() {
   });
   {
     const s = SEAT_MAP['conf-head'];
-    add(s.x + s.y + 0.3, () => {
+    add(s.x + s.y - 0.05, () => {
       groundShadow(s.x - .36, s.y - .36, .74, .74, .45);
       // 리클라이닝 회장 의자
       isoBox(s.x - .34, s.y - .34, .7, .7, .5, 0, '#0f1015', {topK: 1.7, edge: 'rgba(216,189,138,.22)'});
