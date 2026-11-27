@@ -272,9 +272,9 @@ function layout() {
   canvas.width = Math.round(VW * DPR); canvas.height = Math.round(VH * DPR);
   canvas.style.width = VW + 'px'; canvas.style.height = VH + 'px';
   // 그릴 수 있는 자유 영역(좌·우 패널 제외)
-  const wide = VW > 1040;
+  const wide = VW > 980;
   const free = wide
-    ? { x0: 292, x1: VW - 348, y0: 66, y1: VH - 96 }
+    ? { x0: 292, x1: Math.max(292 + 260, VW - 348), y0: 66, y1: VH - 96 }
     : { x0: 4, x1: VW - 4, y0: 92, y1: Math.max(240, VH - Math.min(VH * 0.40, 380) - 118) };
   const fw = Math.max(120, free.x1 - free.x0), fh = Math.max(120, free.y1 - free.y0);
   // S=40 기준 바운딩 박스
