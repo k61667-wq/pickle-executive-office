@@ -424,11 +424,11 @@ function buildBG() {
       const edgeX = gx < 0.85 || gy < 0.85 || gx + w > W - 0.85 || gy + d > D - 0.85;
       const k = Math.floor(gx * 3) * 7 + Math.floor(gy * 3) * 13;
       let col;
-      if (edgeX) col = mix('#3a2418', '#2a1a12', rnd(k));
+      if (edgeX) col = mix('#4a3020', '#33211a', rnd(k));
       else {
-        const t = 0.5 + rnd(k) * 0.5;
-        col = mix('#e6e0d4', '#cfc7b8', t * 0.85);
-        if (rnd(k + 5) > 0.86) col = mix(col, '#b9ae9b', 0.5);
+        const t = 0.55 + rnd(k) * 0.45;
+        col = mix('#efeade', '#ded7c8', t * 0.55);
+        if (rnd(k + 5) > 0.9) col = mix(col, '#cfc5b2', 0.45);
       }
       const A = project(gx, gy), B = project(gx + w, gy), Cc = project(gx + w, gy + d), Dd = project(gx, gy + d);
       poly([A, B, Cc, Dd], col);
@@ -440,8 +440,8 @@ function buildBG() {
     const x0 = 1 + rnd(i * 2.3) * (W - 2), y0 = 1 + rnd(i * 5.1) * (D - 2);
     const x1 = x0 + (rnd(i * 9.7) - 0.5) * 2.4, y1 = y0 + (rnd(i * 4.3) - 0.5) * 2.4;
     const p0 = project(x0, y0), p1 = project(x1, y1);
-    bgc.strokeStyle = `rgba(120,110,95,${0.05 + rnd(i) * 0.09})`;
-    bgc.lineWidth = 0.7 + rnd(i * 3) * 1.2;
+    bgc.strokeStyle = `rgba(130,120,102,${0.035 + rnd(i) * 0.055})`;
+    bgc.lineWidth = 0.6 + rnd(i * 3) * 0.9;
     bgc.beginPath(); bgc.moveTo(p0[0], p0[1]);
     bgc.quadraticCurveTo((p0[0] + p1[0]) / 2 + 8, (p0[1] + p1[1]) / 2 - 6, p1[0], p1[1]);
     bgc.stroke();
@@ -538,9 +538,9 @@ function buildItems() {
   /* --- 라운지 러그 --- */
   add(100, () => {
     const A = project(1.0, 8.15), B = project(4.75, 8.15), Cc = project(4.75, 10.6), D = project(1.0, 10.6);
-    poly([A, B, Cc, D], 'rgba(60,32,44,.55)', 'rgba(216,189,138,.18)', 1.2);
+    poly([A, B, Cc, D], 'rgba(38,22,34,.62)', 'rgba(216,189,138,.20)', 1.2);
     const A2 = project(1.12, 8.27), B2 = project(4.63, 8.27), C2 = project(4.63, 10.48), D2 = project(1.12, 10.48);
-    poly([A2, B2, C2, D2], 'rgba(120,70,90,.20)');
+    poly([A2, B2, C2, D2], 'rgba(96,52,76,.28)');
   });
 
   /* --- 회의 테이블 --- */
@@ -556,9 +556,8 @@ function buildItems() {
     isoBox(TX + 1.1, TY + 0.95, TW - 2.2, TD - 1.9, 0.66, 0, '#5d6068');
     // 상판(월넛)
     isoBox(TX, TY, TW, TD, 0.16, 0.66, '#3d271b', {topK: 1.25});
-    // 대리석 인레이
-    const i0 = 0.34, i1 = 0.3;
-    isoBox(TX + i0, TY + i1, TW - i0 * 2, TD - i1 * 2, 0.02, 0.822, '#e9e4d8', {topK: 1.05});
+    // 대리석 인레이 (얇은 중앙 스트립)
+    isoBox(TX + 1.05, TY + 0.72, TW - 2.1, TD - 1.44, 0.02, 0.822, '#ece6da', {topK: 1.05});
     // 테이블 위 오브제: 노트북, 커피, 서류
     isoBox(TX + 2.4, TY + 0.95, 0.52, 0.38, 0.03, 0.84, '#2c2f38', {topK: 1.5});
     isoBox(TX + 3.0, TY + 0.95, 0.5, 0.38, 0.02, 0.86, '#1d2026', {topK: 1.2});
@@ -602,16 +601,16 @@ function buildItems() {
     isoBox(dx, dy + dd - .06, dw, .06, .74, 0, '#22170f');
     // 모니터 2대 + 스탠드
     const mon = (mx, mw) => {
-      isoBox(mx + mw / 2 - .05, dy + .18, .1, .1, .3, .74, '#3a3d45', {topK: 1.4});
-      isoBox(mx, dy + .06, mw, .06, .44, 1.02, '#0b0c10', {topK: 1.2});
+      isoBox(mx + mw / 2 - .06, dy + .2, .12, .12, .34, .74, '#3a3d45', {topK: 1.4});
+      isoBox(mx, dy + .1, mw, .07, .56, .96, '#0b0c10', {topK: 1.2});
       // 화면 발광
-      const p0 = project(mx + .04, dy + .05, 1.4), p1 = project(mx + mw - .04, dy + .05, 1.4);
-      const p2 = project(mx + mw - .04, dy + .05, 1.08), p3 = project(mx + .04, dy + .05, 1.08);
+      const p0 = project(mx + .05, dy + .1, 1.46), p1 = project(mx + mw - .05, dy + .1, 1.46);
+      const p2 = project(mx + mw - .05, dy + .1, 1.04), p3 = project(mx + .05, dy + .1, 1.04);
       const g = ctx.createLinearGradient(p0[0], p0[1], p3[0], p3[1]);
       g.addColorStop(0, 'rgba(120,180,255,.55)'); g.addColorStop(.5, 'rgba(167,139,250,.42)'); g.addColorStop(1, 'rgba(90,240,220,.3)');
       poly([p0, p1, p2, p3], g);
       for (let i = 0; i < 4; i++) {
-        const q0 = project(mx + .12, dy + .05, 1.34 - i * .065), q1 = project(mx + mw * (.45 + rnd(i + mx) * .45), dy + .05, 1.34 - i * .065);
+        const q0 = project(mx + .14, dy + .1, 1.4 - i * .09), q1 = project(mx + mw * (.45 + rnd(i + mx) * .45), dy + .1, 1.4 - i * .09);
         ctx.strokeStyle = `rgba(255,255,255,${.25 + rnd(i) * .3})`; ctx.lineWidth = 1.4;
         ctx.beginPath(); ctx.moveTo(q0[0], q0[1]); ctx.lineTo(q1[0], q1[1]); ctx.stroke();
       }
@@ -1049,8 +1048,7 @@ function frame(now) {
   });
 
   // 부유 먼지
-  ctx.globalCompositeOperation = 'lighter';
-  for (let i = 0; i < 26; i++) {
+  ctx.globalCompositeOperation = 'lighter';  for (let i = 0; i < 26; i++) {
     const x = (rnd(i) * VW + t * (4 + rnd(i + 9) * 10)) % VW;
     const y = (rnd(i + 3) * VH * 0.8 + Math.sin(t * 0.5 + i) * 20) % (VH * 0.9);
     const a = 0.04 + rnd(i + 7) * 0.09;
@@ -1058,6 +1056,11 @@ function frame(now) {
     ctx.beginPath(); ctx.arc(x, y, 1.1, 0, 7); ctx.fill();
   }
   ctx.globalCompositeOperation = 'source-over';
+
+  // 상하 가장자리 비네트
+  const vg = ctx.createRadialGradient(VW * 0.5, VH * 0.48, Math.min(VW, VH) * 0.28, VW * 0.5, VH * 0.52, Math.max(VW, VH) * 0.75);
+  vg.addColorStop(0, 'rgba(3,4,8,0)'); vg.addColorStop(0.72, 'rgba(3,4,8,.22)'); vg.addColorStop(1, 'rgba(3,4,8,.55)');
+  ctx.fillStyle = vg; ctx.fillRect(0, 0, VW, VH);
 
   requestAnimationFrame(frame);
 }
