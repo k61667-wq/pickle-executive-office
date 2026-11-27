@@ -196,6 +196,9 @@
 </div>
 
 <script>
+window.__pickleErrors = [];
+window.addEventListener('error', e => { try { window.__pickleErrors.push(String(e.message) + ' @' + (e.filename || '').split('/').pop() + ':' + e.lineno); } catch (_) {} });
+window.addEventListener('unhandledrejection', e => { try { window.__pickleErrors.push('rejection: ' + String(e.reason)); } catch (_) {} });
 (() => {
 'use strict';
 
@@ -810,7 +813,7 @@ let sceneItems = [];
 function buildScene() {
   buildCity();
   buildBG();
-  sceneItems = location.hash === '#floor' ? [] : buildItems();
+  sceneItems = buildItems();
   oled.width = 1180; oled.height = 250;
   oledCtx = oled.getContext('2d');
   drawOLED();
