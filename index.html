@@ -1362,6 +1362,18 @@ function updateZones() {
   }).join('') + `<button data-zone="__all"><span>전체</span><b>${agents.length}</b></button>`;
 }
 
+function roParticle(word) {
+  const w = String(word || '').trim();
+  if (!w) return '으로';
+  const ch = w[w.length - 1];
+  const code = ch.charCodeAt(0);
+  if (code >= 0xAC00 && code <= 0xD7A3) {
+    const jong = (code - 0xAC00) % 28;
+    return (jong === 0 || jong === 8) ? '로' : '으로';
+  }
+  return '로';
+}
+
 function toast(msg) {
   const el = document.getElementById('toast');
   el.textContent = msg;
@@ -1371,7 +1383,7 @@ function toast(msg) {
 }
 
 /* --- 입장 --- */
-let joinColor = COLORS[0];
+let joinColor = COLORS[2 + Math.floor(Math.random() * (COLORS.length - 2))];
 function buildJoinUI() {
   const box = document.getElementById('joinColors');
   box.innerHTML = COLORS.map(c => `<div class="sw ${c === joinColor ? 'on' : ''}" data-c="${c}" style="background:linear-gradient(160deg,${c},${shade(c, .6)})"></div>`).join('');
@@ -1460,7 +1472,7 @@ canvas.addEventListener('click', e => {
     const busy = [...state.agents.values()].find(a => a.seat === bestSeat.id && a.id !== state.me.id);
     if (busy) { toast(bestSeat.label + '에는 ' + busy.name + ' 피클이 있어요'); return; }
     pushMe({ seat: bestSeat.id }, true);
-    toast(bestSeat.zone + ' · ' + bestSeat.label + '으로 이동');
+    toast(bestSeat.zone + ' · ' + bestSeat.label + roParticle(bestSeat.label) + ' 이동');
     return;
   }
   state.sel = null; renderPanels();
@@ -1591,8 +1603,6 @@ function boot() {
 
   if (!state.me) setTimeout(showHint, 1400);
   document.getElementById('panelRight').classList.add('open');
-  // 디버그용(좌표 확인)
-  window.__officeDebug = { project: (x, y, z) => project(x, y, z), seats: SEATS, state };
 }
 boot();
 })();
