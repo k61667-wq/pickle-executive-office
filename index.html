@@ -14,6 +14,7 @@
     --font:"Pretendard",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif;
   }
   *{box-sizing:border-box}
+  [hidden]{display:none !important}
   html,body{margin:0;padding:0}
   body{
     font-family:var(--font); color:var(--ink); background:var(--bg);
@@ -456,16 +457,16 @@ const ZONES = [
 
 /* 좌표는 office-bg.png(1400×875) 위의 백분율 */
 const SEATS = [
-  { id:'meet-1',  zone:'meeting', label:'회의석 1', x:17.5, y:20.0 },
-  { id:'meet-2',  zone:'meeting', label:'회의석 2', x:25.0, y:18.0 },
-  { id:'meet-3',  zone:'meeting', label:'회의석 3', x:30.5, y:21.5 },
-  { id:'meet-4',  zone:'meeting', label:'회의석 4', x:17.0, y:33.5 },
-  { id:'meet-5',  zone:'meeting', label:'회의석 5', x:25.5, y:35.0 },
-  { id:'meet-6',  zone:'meeting', label:'회의석 6', x:31.0, y:31.0 },
-  { id:'desk-1',  zone:'desk',    label:'지휘 데스크', x:55.0, y:24.5 },
-  { id:'work-1',  zone:'studio',  label:'워크스테이션 A', x:33.0, y:50.0 },
-  { id:'work-2',  zone:'studio',  label:'워크스테이션 B', x:44.0, y:60.5 },
-  { id:'work-3',  zone:'studio',  label:'워크스테이션 C', x:54.0, y:69.5 },
+  { id:'meet-1',  zone:'meeting', label:'회의석 1', x:15.2, y:22.3 },
+  { id:'meet-2',  zone:'meeting', label:'회의석 2', x:20.6, y:20.4 },
+  { id:'meet-3',  zone:'meeting', label:'회의석 3', x:29.4, y:23.2 },
+  { id:'meet-4',  zone:'meeting', label:'회의석 4', x:17.6, y:33.6 },
+  { id:'meet-5',  zone:'meeting', label:'회의석 5', x:23.0, y:34.5 },
+  { id:'meet-6',  zone:'meeting', label:'회의석 6', x:27.9, y:32.0 },
+  { id:'desk-1',  zone:'desk',    label:'지휘 데스크', x:55.0, y:23.8 },
+  { id:'work-1',  zone:'studio',  label:'워크스테이션 A', x:31.8, y:47.0 },
+  { id:'work-2',  zone:'studio',  label:'워크스테이션 B', x:42.0, y:60.0 },
+  { id:'work-3',  zone:'studio',  label:'워크스테이션 C', x:52.5, y:71.5 },
   { id:'lounge-1',zone:'lounge',  label:'곡선 소파 L', x:81.5, y:50.0 },
   { id:'lounge-2',zone:'lounge',  label:'곡선 소파 R', x:87.0, y:54.5 },
   { id:'lounge-3',zone:'lounge',  label:'라운드 테이블', x:71.0, y:62.0 }
