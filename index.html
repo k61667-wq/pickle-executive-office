@@ -220,9 +220,9 @@
     position:fixed;z-index:90;left:50%;top:50%;transform:translate(-50%,-46%) scale(.98);
     width:min(440px, calc(100vw - 28px));max-height:min(86vh, 760px);overflow:auto;
     background:#fff;border-radius:24px;box-shadow:0 30px 90px -30px rgba(15,23,42,.6);
-    opacity:0;pointer-events:none;transition:opacity .2s ease, transform .24s cubic-bezier(.2,.8,.2,1)
+    opacity:0;visibility:hidden;pointer-events:none;transition:opacity .2s ease, transform .24s cubic-bezier(.2,.8,.2,1)
   }
-  .sheet.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+  .sheet.on{opacity:1;visibility:visible;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
   .sheet-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:18px 20px 10px}
   .sheet-head h3{margin:0;font-size:17px;font-weight:780;letter-spacing:-.5px}
   .xbtn{border:0;background:#F3F4F7;width:30px;height:30px;border-radius:50%;font-size:13px;color:#5B6472;cursor:pointer;display:grid;place-items:center}
@@ -458,9 +458,9 @@ const ZONES = [
 
 /* 좌표는 office-bg.png(1400×875) 위의 백분율 */
 const SEATS = [
-  { id:'meet-1',  zone:'meeting', label:'회의석 1', x:15.2, y:22.3 },
-  { id:'meet-2',  zone:'meeting', label:'회의석 2', x:20.6, y:20.4 },
-  { id:'meet-3',  zone:'meeting', label:'회의석 3', x:29.4, y:23.2 },
+  { id:'meet-1',  zone:'meeting', label:'회의석 1', x:15.2, y:23.4 },
+  { id:'meet-2',  zone:'meeting', label:'회의석 2', x:20.6, y:21.6 },
+  { id:'meet-3',  zone:'meeting', label:'회의석 3', x:29.4, y:24.2 },
   { id:'meet-4',  zone:'meeting', label:'회의석 4', x:17.6, y:33.6 },
   { id:'meet-5',  zone:'meeting', label:'회의석 5', x:23.0, y:34.5 },
   { id:'meet-6',  zone:'meeting', label:'회의석 6', x:27.9, y:32.0 },
@@ -750,7 +750,14 @@ function renderSpaces(){
   }).join('');
   $('spaceGrid').querySelectorAll('.space').forEach(b => b.onclick = () => openZone(b.dataset.zone));
 }
-function renderAll(){
+let renderSig = '';
+function renderAll(force){
+  const sig = [...state.agents.values()]
+      .map(a => [a.id, a.name, a.color, a.seat, a.status, a.memo, a.at].join('|')).sort().join(';')
+    + '#' + state.notes.map(n => [n.id, n.name, n.text, n.at].join('|')).join(';')
+    + '#' + (state.me ? [state.me.id, state.me.name, state.me.color, state.me.seat, state.me.status, state.me.memo].join('|') : '-');
+  if (!force && sig === renderSig) return;
+  renderSig = sig;
   renderHero(); renderMap(); renderSpaces();
   renderMeeting(); renderStudio(); renderStatus(); renderMemo(); renderComposeWho();
   if (sheetKind === 'zone') openZone(sheetKey, true);
