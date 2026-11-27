@@ -468,7 +468,7 @@ const SEATS = [
   { id:'work-1',  zone:'studio',  label:'워크스테이션 A', x:31.8, y:47.0 },
   { id:'work-2',  zone:'studio',  label:'워크스테이션 B', x:42.0, y:60.0 },
   { id:'work-3',  zone:'studio',  label:'워크스테이션 C', x:52.5, y:71.5 },
-  { id:'lounge-1',zone:'lounge',  label:'곡선 소파 L', x:81.5, y:50.0 },
+  { id:'lounge-1',zone:'lounge',  label:'곡선 소파 L', x:81.5, y:52.5 },
   { id:'lounge-2',zone:'lounge',  label:'곡선 소파 R', x:87.0, y:54.5 },
   { id:'lounge-3',zone:'lounge',  label:'라운드 테이블', x:71.0, y:62.0 }
 ];
@@ -661,7 +661,7 @@ function joinWith(name, color, seat, fixedId){
   state.me = {
     id, name: name.slice(0, 12), color,
     seat: normSeat(seat),
-    status: fixedId === 'salang' ? '비서실장 · 상주' : '입장',
+    status: fixedId === 'salang' ? '비서실장 · 상주' : '',
     memo: ''
   };
   mergeSelfIntoAgents();
@@ -1126,7 +1126,7 @@ function init(){
   const saved = savedMe();
   if (saved && saved.name){
     state.me = { id: saved.id || 'p-' + rand(8), name: saved.name, color: saved.color || COLORS[0],
-      seat: normSeat(saved.seat || 'lounge-3'), status:'입장', memo:'' };
+      seat: normSeat(saved.seat || 'lounge-3'), status:'', memo:'' };
     mergeSelfIntoAgents();
   }
   // ?as= 사랑 / 친구
