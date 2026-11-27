@@ -107,6 +107,7 @@
   .map-head .sync.err i{background:#EF4444}
   .stage{position:relative;border-radius:19px;overflow:hidden;background:#EFEFEC;line-height:0}
   .stage img{width:100%;height:auto;display:block;user-select:none;-webkit-user-drag:none}
+  .stage picture{display:block;line-height:0}
   .stage::after{content:"";position:absolute;inset:0;border-radius:19px;box-shadow:inset 0 0 0 1px rgba(16,24,40,.07);pointer-events:none}
 
   .zp{
@@ -357,7 +358,10 @@
           <span class="sync" id="syncBox"><i></i><b id="syncText">연결 중…</b></span>
         </div>
         <div class="stage" id="stage">
-          <img src="office-bg.png" alt="사랑 오피스 아이소메트릭 도면 — 대회의실, 지휘실, 작업실, 라운지" id="stageImg" draggable="false">
+          <picture>
+            <source srcset="office-bg.webp" type="image/webp">
+            <img src="office-bg.png" alt="사랑 오피스 아이소메트릭 도면 — 대회의실, 지휘실, 작업실, 라운지" id="stageImg" draggable="false">
+          </picture>
           <div id="mapPins"></div>
           <div id="mapNodes"></div>
         </div>
