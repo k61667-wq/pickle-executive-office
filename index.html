@@ -772,7 +772,7 @@ let sceneItems = [];
 function buildScene() {
   buildCity();
   buildBG();
-  sceneItems = buildItems();
+  sceneItems = location.hash === '#floor' ? [] : buildItems();
   oled.width = 1180; oled.height = 250;
   oledCtx = oled.getContext('2d');
   drawOLED();
