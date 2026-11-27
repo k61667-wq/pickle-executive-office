@@ -259,13 +259,26 @@ function layout() {
   DPR = Math.min(window.devicePixelRatio || 1, 2);
   canvas.width = Math.round(VW * DPR); canvas.height = Math.round(VH * DPR);
   canvas.style.width = VW + 'px'; canvas.style.height = VH + 'px';
-  const spanX = ROOM.w + ROOM.d;
-  const spanY = spanX * 0.5 + ROOM.wall;
-  const padX = VW > 980 ? 0.52 : 0.86;   // 좌우 패널 고려
-  S = Math.min((VW * padX) / spanX, (VH * 0.74) / spanY);
-  S = Math.max(16, Math.min(S, 62));
-  OX = VW * (VW > 980 ? 0.5 : 0.5) + (VW > 980 ? 8 : 0);
-  OY = VH * 0.5 - (ROOM.w + ROOM.d) * 0.25 * S + ROOM.wall * S * 0.42;
+  // 그릴 수 있는 자유 영역(좌·우 패널 제외)
+  const wide = VW > 1040;
+  const free = wide
+    ? { x0: 292, x1: VW - 348, y0: 66, y1: VH - 96 }
+    : { x0: 10, x1: VW - 10, y0: 58, y1: VH * 0.62 };
+  const fw = Math.max(120, free.x1 - free.x0), fh = Math.max(120, free.y1 - free.y0);
+  // S=40 기준 바운딩 박스
+  const ref = 40, pts = [];
+  [[0, 0], [ROOM.w, 0], [ROOM.w, ROOM.d], [0, ROOM.d]].forEach(([x, y]) => {
+    pts.push([(x - y) * ref, (x + y) * 0.5 * ref]);
+    pts.push([(x - y) * ref, (x + y) * 0.5 * ref - ROOM.wall * ref]);
+  });
+  const mnX = Math.min(...pts.map(p => p[0])), mxX = Math.max(...pts.map(p => p[0]));
+  const mnY = Math.min(...pts.map(p => p[1])), mxY = Math.max(...pts.map(p => p[1]));
+  const bw0 = mxX - mnX, bh0 = mxY - mnY;
+  S = Math.min(fw / bw0, fh / bh0) * ref * 0.97;
+  S = Math.max(14, Math.min(S, 78));
+  const k = S / ref;
+  OX = free.x0 + (fw - bw0 * k) / 2 - mnX * k;
+  OY = free.y0 + (fh - bh0 * k) / 2 - mnY * k;
   buildScene();
 }
 
@@ -289,13 +302,14 @@ function mix(a, b, t) {
 function rnd(i) { const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
 
 /* ---------- 기본 도형 ---------- */
+let TC = ctx;   // 현재 그리기 대상(배경 캐시 / 화면)
 function poly(pts, fill, stroke, lw) {
-  ctx.beginPath();
-  ctx.moveTo(pts[0][0], pts[0][1]);
-  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
-  ctx.closePath();
-  if (fill) { ctx.fillStyle = fill; ctx.fill(); }
-  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lw || 1; ctx.stroke(); }
+  TC.beginPath();
+  TC.moveTo(pts[0][0], pts[0][1]);
+  for (let i = 1; i < pts.length; i++) TC.lineTo(pts[i][0], pts[i][1]);
+  TC.closePath();
+  if (fill) { TC.fillStyle = fill; TC.fill(); }
+  if (stroke) { TC.strokeStyle = stroke; TC.lineWidth = lw || 1; TC.stroke(); }
 }
 /* 박스: x,y 평면 사각형, h 높이, z0 시작 높이 */
 function isoBox(x, y, w, d, h, z0, base, opt = {}) {
@@ -318,10 +332,10 @@ function isoBox(x, y, w, d, h, z0, base, opt = {}) {
 }
 function groundShadow(x, y, w, d, alpha = 0.5) {
   const A = project(x, y), B = project(x + w, y), Cc = project(x + w, y + d), D = project(x, y + d);
-  ctx.save();
-  ctx.filter = 'blur(6px)';
+  TC.save();
+  TC.filter = 'blur(6px)';
   poly([A, B, Cc, D], `rgba(0,0,0,${alpha})`);
-  ctx.restore();
+  TC.restore();
 }
 
 /* ============================================================
@@ -398,6 +412,7 @@ function buildBG() {
   bg.width = Math.round(VW * DPR); bg.height = Math.round(VH * DPR);
   bgc.setTransform(DPR, 0, 0, DPR, 0, 0);
   bgc.clearRect(0, 0, VW, VH);
+  TC = bgc;
 
   const W = ROOM.w, D = ROOM.d, H = ROOM.wall;
 
@@ -510,6 +525,7 @@ function buildBG() {
     bgc.lineTo(p1[0], p1[1]); bgc.lineTo(p2[0], p2[1]);
     bgc.closePath(); bgc.fill();
   }
+  TC = ctx;
 }
 
 /* ============================================================
@@ -531,9 +547,9 @@ function buildItems() {
   const TX = 5.95, TY = 4.35, TW = 6.0, TD = 2.35;
   add(TX + TW + TD, () => {
     // 그림자
-    ctx.save(); ctx.filter = 'blur(10px)';
+    TC.save(); TC.filter = 'blur(10px)';
     poly([project(TX - .1, TY - .1), project(TX + TW + .15, TY - .1), project(TX + TW + .15, TY + TD + .15), project(TX - .1, TY + TD + .15)], 'rgba(0,0,0,.55)');
-    ctx.restore();
+    TC.restore();
     // 크롬 베이스
     isoBox(TX + 0.55, TY + 0.65, 0.5, 0.5, 0.68, 0, '#8b8f99', {topK: 1.4});
     isoBox(TX + TW - 1.05, TY + 0.65, 0.5, 0.5, 0.68, 0, '#8b8f99', {topK: 1.4});
@@ -996,6 +1012,7 @@ function drawPickle(a, px, py, t) {
 let t0 = performance.now();
 function frame(now) {
   const t = (now - t0) / 1000;
+  TC = ctx;
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   ctx.clearRect(0, 0, VW, VH);
 
