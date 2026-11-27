@@ -869,7 +869,13 @@ function closeSheet(){
   $('sheet').classList.remove('on');
   $('scrim').classList.remove('on');
   sheetKind = null; sheetKey = null;
-  setTimeout(() => { if (!$('sheet').classList.contains('on')) $('scrim').hidden = true; }, 220);
+  setTimeout(() => {
+    if (!$('sheet').classList.contains('on')){
+      $('scrim').hidden = true;
+      $('sheetBody').innerHTML = '';
+      $('sheetTitle').textContent = '';
+    }
+  }, 240);
 }
 function bindClose(){
   $('sheetClose').onclick = closeSheet;
