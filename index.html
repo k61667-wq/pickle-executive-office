@@ -505,6 +505,20 @@ function buildBG() {
     poly(quad, '#07080c', 'rgba(216,189,138,.45)', 1.6);
     // 하단 미디어 콘솔
     isoBox(bx - 0.1, 0.02, bw + 0.2, 0.42, 0.52, 0, '#1b1512', {topK: 1.3});
+    // 월 아트 (골드 프레임)
+    const ax0 = 13.15, ax1 = 14.75, az0 = 1.35, az1 = 2.55;
+    const art = [project(ax0, 0, az0), project(ax1, 0, az0), project(ax1, 0, az1), project(ax0, 0, az1)];
+    poly(art, '#0d0b0c', 'rgba(216,189,138,.75)', 2.2);
+    const inner = [project(ax0 + .09, 0, az0 + .09), project(ax1 - .09, 0, az0 + .09), project(ax1 - .09, 0, az1 - .09), project(ax0 + .09, 0, az1 - .09)];
+    const ag = bgc.createLinearGradient(art[0][0], art[0][1], art[2][0], art[2][1]);
+    ag.addColorStop(0, '#241a2e'); ag.addColorStop(.45, '#4b3550'); ag.addColorStop(.7, '#2a2036'); ag.addColorStop(1, '#6b4a3a');
+    poly(inner, ag);
+    for (let i = 0; i < 5; i++) {
+      const y0 = az0 + .25 + i * .22;
+      const p0 = project(ax0 + .2, 0, y0), p1 = project(ax1 - .25, 0, y0 + .1);
+      bgc.strokeStyle = `rgba(255,225,190,${.07 + rnd(i) * .12})`; bgc.lineWidth = 1.4;
+      bgc.beginPath(); bgc.moveTo(p0[0], p0[1]); bgc.lineTo(p1[0], p1[1]); bgc.stroke();
+    }
   }
 
   /* --- 벽 (x=0) : 통유리 시티뷰 --- */
@@ -772,6 +786,21 @@ function buildItems() {
     poly(sp, 'rgba(110,231,183,.35)');
   });
 
+  /* --- 사이드보드 (우측 벽) --- */
+  add(14.4, () => {
+    const sx = 13.15, sy = 0.34, sw = 1.6, sd = 0.72;
+    groundShadow(sx, sy, sw, sd, .4);
+    isoBox(sx, sy, sw, sd, 0.72, 0.14, '#3a2519', {topK: 1.28, edge: 'rgba(0,0,0,.35)'});
+    // 놋쇠 다리
+    [[sx + .08, sy + .08], [sx + sw - .12, sy + .08], [sx + .08, sy + sd - .12], [sx + sw - .12, sy + sd - .12]].forEach(([lx, ly]) => {
+      isoBox(lx, ly, .05, .05, .14, 0, '#b08d55');
+    });
+    // 상판 오브제
+    isoBox(sx + .22, sy + .2, .3, .3, .26, .86, '#5d4a7a', {topK: 1.35});   // 도자기
+    isoBox(sx + 1.02, sy + .26, .34, .22, .04, .86, '#e8e2d6');             // 트레이
+    isoBox(sx + 1.06, sy + .3, .12, .12, .16, .86, '#cfc6b4');
+  });
+
   /* --- 화분 --- */
   const plant = (px, py, sc = 1) => {
     groundShadow(px - .3 * sc, py - .3 * sc, .6 * sc, .6 * sc, .4);
@@ -791,6 +820,7 @@ function buildItems() {
   plant(0.75, 5.45, 1.15);
   plant(14.35, 6.15, 1.0);
   plant(0.7, 1.25, .95);
+  plant(14.2, 10.25, 1.1);
 
   /* --- 펜던트 조명 (천장) --- */
   for (let i = 0; i < 3; i++) {
