@@ -447,6 +447,7 @@ const API = {
 };
 const COLORS = ['#8B5CF6','#38BDF8','#F472B6','#34D399','#FBBF24','#FB7185','#60A5FA','#A3E635'];
 const ME_KEY = 'pickle-office-me-v1';
+const HIDDEN_NOTES = ['n-0lpbxnu'];
 
 const ZONES = [
   { id:'meeting', name:'대회의실', en:'Meeting Room', desc:'6인 원목 테이블 · 유리 파티션', x:7.5,  y:41 },
@@ -497,6 +498,7 @@ const state = {
 const $ = id => document.getElementById(id);
 function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 function rand(n){ return Math.random().toString(36).slice(2, 2 + n); }
+function nameId(name){ let h = 0; for (const ch of String(name)) h = (h * 31 + ch.charCodeAt(0)) | 0; return 'p-' + Math.abs(h).toString(36); }
 function shade(hex, f){
   let h = String(hex || '#8B5CF6').replace('#',''); if (h.length === 3) h = h.split('').map(c=>c+c).join('');
   const n = parseInt(h, 16);
@@ -594,6 +596,7 @@ function applyRows(rows){
     if (!e || !e.op) return;
     const at = Number(e.at || e.ts || 0) || 0;
     if (e.op === 'note'){
+      if (HIDDEN_NOTES.indexOf(e.id) >= 0) return;   // 이전 검증 때 남긴 테스트 메모
       notes.push({ id:e.id, name:e.name || '피클', color:e.color, text:e.text, at, seat:e.seat });
     } else if (e.op === 'leave'){
       agents.delete(e.id);
@@ -972,7 +975,7 @@ function openJoin(preselect){
 function seatOptions(sel){
   return SEATS.map(s => {
     const busy = isTaken(s.id, state.me && state.me.id);
-    return `<option value="${s.id}" ${s.id === sel ? 'selected' : ''}>${esc(ZONE_MAP[s.zone].name + ' · ' + s.label)}${busy ? ' (사용 중)' : ''}</option>`;
+    return `<option value="${s.id}" ${s.id === sel ? 'selected' : ''} ${busy ? 'disabled' : ''}>${esc(ZONE_MAP[s.zone].name + ' · ' + s.label)}${busy ? ' (사용 중)' : ''}</option>`;
   }).join('');
 }
 function firstFreeSeat(){
@@ -1127,7 +1130,7 @@ function init(){
     joinWith(isSalang ? '사랑' : as.slice(0,12),
       isSalang ? '#8B5CF6' : (saved && saved.name === as ? (saved.color || COLORS[0]) : COLORS[Math.floor(Math.random()*COLORS.length)]),
       isSalang ? 'desk-1' : ((saved && saved.name === as && SEAT_MAP[saved.seat]) ? saved.seat : firstFreeSeat()),
-      isSalang ? 'salang' : null);
+      isSalang ? 'salang' : nameId(as.slice(0,12)));
   }
 
   renderAll();
