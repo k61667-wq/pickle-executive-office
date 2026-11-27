@@ -575,8 +575,8 @@ function buildItems() {
     isoBox(TX + 1.1, TY + 0.95, TW - 2.2, TD - 1.9, 0.66, 0, '#5d6068');
     // 상판(월넛)
     isoBox(TX, TY, TW, TD, 0.16, 0.66, '#3d271b', {topK: 1.25});
-    // 대리석 인레이 (얇은 중앙 스트립)
-    isoBox(TX + 1.05, TY + 0.72, TW - 2.1, TD - 1.44, 0.02, 0.822, '#ece6da', {topK: 1.05});
+    // 대리석 인레이 (중앙 스트립)
+    isoBox(TX + 1.35, TY + 0.78, TW - 2.7, TD - 1.56, 0.02, 0.822, '#ded6c6', {topK: 1.04});
     // 테이블 위 오브제: 노트북, 커피, 서류
     isoBox(TX + 2.4, TY + 0.95, 0.52, 0.38, 0.03, 0.84, '#2c2f38', {topK: 1.5});
     isoBox(TX + 3.0, TY + 0.95, 0.5, 0.38, 0.02, 0.86, '#1d2026', {topK: 1.2});
@@ -620,22 +620,23 @@ function buildItems() {
     isoBox(dx, dy + dd - .06, dw, .06, .74, 0, '#22170f');
     // 모니터 2대 + 스탠드
     const mon = (mx, mw) => {
-      isoBox(mx + mw / 2 - .06, dy + .2, .12, .12, .34, .74, '#3a3d45', {topK: 1.4});
-      isoBox(mx, dy + .1, mw, .07, .56, .96, '#0b0c10', {topK: 1.2});
+      isoBox(mx + mw / 2 - .07, dy + .24, .14, .14, .38, .74, '#33363e', {topK: 1.4});
+      isoBox(mx, dy + .1, mw, .08, .66, 1.02, '#0a0b0f', {topK: 1.15});
       // 화면 발광
-      const p0 = project(mx + .05, dy + .1, 1.46), p1 = project(mx + mw - .05, dy + .1, 1.46);
-      const p2 = project(mx + mw - .05, dy + .1, 1.04), p3 = project(mx + .05, dy + .1, 1.04);
+      const p0 = project(mx + .05, dy + .1, 1.62), p1 = project(mx + mw - .05, dy + .1, 1.62);
+      const p2 = project(mx + mw - .05, dy + .1, 1.08), p3 = project(mx + .05, dy + .1, 1.08);
       const g = ctx.createLinearGradient(p0[0], p0[1], p3[0], p3[1]);
-      g.addColorStop(0, 'rgba(120,180,255,.55)'); g.addColorStop(.5, 'rgba(167,139,250,.42)'); g.addColorStop(1, 'rgba(90,240,220,.3)');
+      g.addColorStop(0, 'rgba(130,190,255,.62)'); g.addColorStop(.5, 'rgba(167,139,250,.48)'); g.addColorStop(1, 'rgba(90,240,220,.34)');
       poly([p0, p1, p2, p3], g);
-      for (let i = 0; i < 4; i++) {
-        const q0 = project(mx + .14, dy + .1, 1.4 - i * .09), q1 = project(mx + mw * (.45 + rnd(i + mx) * .45), dy + .1, 1.4 - i * .09);
-        ctx.strokeStyle = `rgba(255,255,255,${.25 + rnd(i) * .3})`; ctx.lineWidth = 1.4;
+      // 코드 라인
+      for (let i = 0; i < 5; i++) {
+        const q0 = project(mx + .14, dy + .1, 1.56 - i * .1), q1 = project(mx + mw * (.4 + rnd(i + mx) * .5), dy + .1, 1.56 - i * .1);
+        ctx.strokeStyle = `rgba(255,255,255,${.22 + rnd(i) * .3})`; ctx.lineWidth = 1.3;
         ctx.beginPath(); ctx.moveTo(q0[0], q0[1]); ctx.lineTo(q1[0], q1[1]); ctx.stroke();
       }
       // 화면 광 확산
-      ctx.save(); ctx.filter = 'blur(14px)';
-      poly([p0, p1, p2, p3], 'rgba(140,170,255,.20)');
+      ctx.save(); ctx.filter = 'blur(16px)';
+      poly([p0, p1, p2, p3], 'rgba(150,180,255,.22)');
       ctx.restore();
     };
     mon(dx + .35, 1.65);
@@ -1047,13 +1048,15 @@ function frame(now) {
   // 깊이 정렬 아이템 + 캐릭터
   const drawables = [];
   sceneItems.forEach(it => drawables.push({ depth: it.depth, fn: it.fn }));
+  drawables.sort((a, b) => a.depth - b.depth);
+  drawables.forEach(d => d.fn());
+
+  // 캐릭터는 가구 위에 (얼굴이 항상 보이도록)
   state.agents.forEach(a => {
     const p = a._p || seatPos(a);
     const px = project(p.x, p.y, 0);
-    drawables.push({ depth: p.x + p.y + 0.02, fn: () => drawPickle(a, px[0], px[1], t) });
+    drawPickle(a, px[0], px[1], t);
   });
-  drawables.sort((a, b) => a.depth - b.depth);
-  drawables.forEach(d => d.fn());
 
   // 대기실 좌석 마커(빈 자리)
   const taken = new Set([...state.agents.values()].map(a => a.seat));
