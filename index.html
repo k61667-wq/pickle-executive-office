@@ -336,11 +336,11 @@ function isoBox(x, y, w, d, h, z0, base, opt = {}) {
   }
   return {A, B, Cc, D};
 }
-function groundShadow(x, y, w, d, alpha = 0.5) {
+function groundShadow(x, y, w, d, alpha = 0.28) {
   const A = project(x, y), B = project(x + w, y), Cc = project(x + w, y + d), D = project(x, y + d);
   TC.save();
-  TC.filter = 'blur(6px)';
-  poly([A, B, Cc, D], `rgba(0,0,0,${alpha})`);
+  TC.filter = 'blur(12px)';
+  poly([A, B, Cc, D], `rgba(0,0,0,${alpha * 0.62})`);
   TC.restore();
 }
 
@@ -423,33 +423,46 @@ function buildBG() {
   const W = ROOM.w, D = ROOM.d, H = ROOM.wall;
 
   /* --- 바닥 --- */
-  const tile = 0.75;
+  const tile = 1.5;
   for (let gy = 0; gy < D - 0.001; gy += tile) {
     for (let gx = 0; gx < W - 0.001; gx += tile) {
       const w = Math.min(tile, W - gx), d = Math.min(tile, D - gy);
-      const edgeX = gx < 0.85 || gy < 0.85 || gx + w > W - 0.85 || gy + d > D - 0.85;
-      const k = Math.floor(gx * 3) * 7 + Math.floor(gy * 3) * 13;
+      const edgeX = gx < 0.92 || gy < 0.92 || gx + w > W - 0.92 || gy + d > D - 0.92;
+      const k = Math.floor(gx * 2) * 7 + Math.floor(gy * 2) * 13;
       let col;
-      if (edgeX) col = mix('#4a3020', '#33211a', rnd(k));
-      else {
-        const t = 0.55 + rnd(k) * 0.45;
-        col = mix('#efeade', '#ded7c8', t * 0.55);
-        if (rnd(k + 5) > 0.9) col = mix(col, '#cfc5b2', 0.45);
+      if (edgeX) {
+        col = mix('#4a3020', '#39251a', rnd(k) * 0.8);
+      } else {
+        const t = 0.5 + rnd(k) * 0.5;
+        col = mix('#ece5d5', '#d9cfba', t * 0.6);
+        if (rnd(k + 5) > 0.78) col = mix(col, '#cfc3ac', 0.35);
       }
       const A = project(gx, gy), B = project(gx + w, gy), Cc = project(gx + w, gy + d), Dd = project(gx, gy + d);
       poly([A, B, Cc, Dd], col);
+      if (!edgeX) {
+        TC.strokeStyle = 'rgba(90,78,60,.10)'; TC.lineWidth = 1;
+        TC.beginPath(); TC.moveTo(A[0], A[1]); TC.lineTo(B[0], B[1]); TC.lineTo(Cc[0], Cc[1]); TC.stroke();
+      } else {
+        // 월넛 결
+        for (let i = 1; i < 3; i++) {
+          const yy = gy + d * i / 3;
+          const p0 = project(gx, yy), p1 = project(gx + w, yy);
+          TC.strokeStyle = 'rgba(0,0,0,.16)'; TC.lineWidth = 1;
+          TC.beginPath(); TC.moveTo(p0[0], p0[1]); TC.lineTo(p1[0], p1[1]); TC.stroke();
+        }
+      }
     }
   }
   // 대리석 결
   bgc.save();
-  for (let i = 0; i < 90; i++) {
+  for (let i = 0; i < 70; i++) {
     const x0 = 1 + rnd(i * 2.3) * (W - 2), y0 = 1 + rnd(i * 5.1) * (D - 2);
-    const x1 = x0 + (rnd(i * 9.7) - 0.5) * 2.4, y1 = y0 + (rnd(i * 4.3) - 0.5) * 2.4;
+    const x1 = x0 + (rnd(i * 9.7) - 0.5) * 3.2, y1 = y0 + (rnd(i * 4.3) - 0.5) * 3.2;
     const p0 = project(x0, y0), p1 = project(x1, y1);
-    bgc.strokeStyle = `rgba(130,120,102,${0.035 + rnd(i) * 0.055})`;
-    bgc.lineWidth = 0.6 + rnd(i * 3) * 0.9;
+    bgc.strokeStyle = `rgba(120,104,82,${0.03 + rnd(i) * 0.05})`;
+    bgc.lineWidth = 0.6 + rnd(i * 3) * 1.1;
     bgc.beginPath(); bgc.moveTo(p0[0], p0[1]);
-    bgc.quadraticCurveTo((p0[0] + p1[0]) / 2 + 8, (p0[1] + p1[1]) / 2 - 6, p1[0], p1[1]);
+    bgc.quadraticCurveTo((p0[0] + p1[0]) / 2 + 10, (p0[1] + p1[1]) / 2 - 8, p1[0], p1[1]);
     bgc.stroke();
   }
   bgc.restore();
@@ -553,8 +566,8 @@ function buildItems() {
   const TX = 5.95, TY = 4.35, TW = 6.0, TD = 2.35;
   add(TX + TW + TD, () => {
     // 그림자
-    TC.save(); TC.filter = 'blur(10px)';
-    poly([project(TX - .1, TY - .1), project(TX + TW + .15, TY - .1), project(TX + TW + .15, TY + TD + .15), project(TX - .1, TY + TD + .15)], 'rgba(0,0,0,.55)');
+    TC.save(); TC.filter = 'blur(14px)';
+    poly([project(TX - .1, TY - .1), project(TX + TW + .15, TY - .1), project(TX + TW + .15, TY + TD + .15), project(TX - .1, TY + TD + .15)], 'rgba(0,0,0,.32)');
     TC.restore();
     // 크롬 베이스
     isoBox(TX + 0.55, TY + 0.65, 0.5, 0.5, 0.68, 0, '#8b8f99', {topK: 1.4});
