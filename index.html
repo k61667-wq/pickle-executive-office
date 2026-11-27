@@ -220,8 +220,8 @@ const SEATS = [
   {id:'conf-head', zone:'회의실', label:'회장석',      x:12.35, y:5.50},
   {id:'conf-1',    zone:'회의실', label:'회의석 1',    x:7.45,  y:4.05},
   {id:'conf-2',    zone:'회의실', label:'회의석 2',    x:8.95,  y:4.05},
-  {id:'conf-3',    zone:'회의실', label:'회의석 3',    x:10.45, y:4.05},
-  {id:'conf-4',    zone:'회의실', label:'회의석 4',    x:7.45,  y:6.95},
+  {id:'conf-3',    zone:'회의실', label:'회의석 3',    x:10.30, y:4.05},
+  {id:'conf-4',    zone:'회의실', label:'회의석 4',    x:7.80,  y:6.95},
   {id:'conf-5',    zone:'회의실', label:'회의석 5',    x:8.95,  y:6.95},
   {id:'conf-6',    zone:'회의실', label:'회의석 6',    x:10.45, y:6.95},
   {id:'work-1',    zone:'작업실', label:'워크스테이션 A', x:2.15,  y:3.25},
@@ -591,7 +591,7 @@ function buildItems() {
 
   /* --- 회의 테이블 --- */
   const TX = 5.95, TY = 4.35, TW = 6.0, TD = 2.35;
-  add(TX + TW + TD, () => {
+  add(14.6, () => {
     // 그림자
     TC.save(); TC.filter = 'blur(14px)';
     poly([project(TX - .1, TY - .1), project(TX + TW + .15, TY - .1), project(TX + TW + .15, TY + TD + .15), project(TX - .1, TY + TD + .15)], 'rgba(0,0,0,.32)');
@@ -625,7 +625,7 @@ function buildItems() {
   };
   [['conf-1', -1], ['conf-2', -1], ['conf-3', -1], ['conf-4', 1], ['conf-5', 1], ['conf-6', 1]].forEach(([id, b]) => {
     const s = SEAT_MAP[id];
-    add(s.x + s.y + 0.3, () => chair(s.x, s.y, b));
+    add(s.x + s.y, () => chair(s.x, s.y, b));
   });
   {
     const s = SEAT_MAP['conf-head'];
@@ -640,7 +640,7 @@ function buildItems() {
   }
 
   /* --- 작업실 데스크 + 울트라와이드 모니터 + 맥 스튜디오 --- */
-  add(7.2, () => {
+  add(5.0, () => {
     const dx = 1.15, dy = 2.0, dw = 5.0, dd = 0.95;
     groundShadow(dx, dy, dw, dd, .45);
     isoBox(dx, dy, dw, dd, 0.74, 0, '#2b1d15', {topK: 1.3});
@@ -674,8 +674,10 @@ function buildItems() {
     isoBox(dx + .55, dy + .58, .85, .26, .02, .74, '#15171d', {topK: 1.4});
     isoBox(dx + 3.0, dy + .58, .8, .26, .02, .74, '#15171d', {topK: 1.4});
     isoBox(dx + 2.0, dy + .6, .16, .26, .03, .74, '#c9ccd3', {topK: 1.2});
-    // 작업 의자 3
-    [[2.15, 3.28], [3.55, 3.28], [4.95, 3.28]].forEach(([cx, cy]) => {
+  });
+  // 작업 의자 3
+  [[2.15, 3.28], [3.55, 3.28], [4.95, 3.28]].forEach(([cx, cy]) => {
+    add(cx + cy, () => {
       groundShadow(cx - .3, cy - .3, .6, .6, .35);
       isoBox(cx - .28, cy - .28, .56, .56, .42, 0, '#191b22', {topK: 1.5});
       isoBox(cx - .28, cy + .26, .56, .12, .72, 0, '#191b22', {topK: 1.35});
@@ -1075,15 +1077,13 @@ function frame(now) {
   // 깊이 정렬 아이템 + 캐릭터
   const drawables = [];
   sceneItems.forEach(it => drawables.push({ depth: it.depth, fn: it.fn }));
-  drawables.sort((a, b) => a.depth - b.depth);
-  drawables.forEach(d => d.fn());
-
-  // 캐릭터는 가구 위에 (얼굴이 항상 보이도록)
   state.agents.forEach(a => {
     const p = a._p || seatPos(a);
     const px = project(p.x, p.y, 0);
-    drawPickle(a, px[0], px[1], t);
+    drawables.push({ depth: p.x + p.y + 0.1, fn: () => drawPickle(a, px[0], px[1], t) });
   });
+  drawables.sort((a, b) => a.depth - b.depth);
+  drawables.forEach(d => d.fn());
 
   // 대기실 좌석 마커(빈 자리)
   const taken = new Set([...state.agents.values()].map(a => a.seat));
