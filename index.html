@@ -3,8 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#F3F4F7">
+<meta name="theme-color" content="#ffffff">
 <title>사랑 오피스 · Sarang Office</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="사랑 오피스">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="description" content="사랑님의 피클들이 함께 쓰는 모던 비서실. 실시간으로 자리와 상태, 메모가 공유됩니다.">
 <style>
   :root{
@@ -55,6 +62,22 @@
   .btn.wide{width:100%;justify-content:center;padding:13px 16px;font-size:14px;border-radius:14px}
   .btn.danger{background:#fff;color:#DC2626;border-color:#FEE2E2}
   .btn.ghost{background:transparent}
+
+  /* ── PWA 설치 ───────────────────────────── */
+  .btn.install{background:#F5F3FF;color:#6D28D9;border-color:#EDE9FE;font-weight:750}
+  .btn.install:hover{background:#EFEAFF}
+  .steps{margin:0;padding-left:19px;font-size:13px;line-height:1.8;color:var(--ink2);letter-spacing:-.2px}
+  .steps li{margin:1px 0}
+  .steps b{color:var(--ink);font-weight:750}
+  .installhead{display:flex;align-items:center;gap:12px;margin-bottom:4px}
+  .installhead img{width:54px;height:54px;border-radius:15px;flex:0 0 54px;box-shadow:0 10px 22px -14px rgba(15,27,45,.8)}
+  .installhead div{min-width:0}
+  .installhead b{display:block;font-size:14.5px;letter-spacing:-.3px}
+  .installhead span{display:block;font-size:11.5px;color:var(--muted);margin-top:3px}
+  /* 단독 앱(standalone)으로 열렸을 때 — 브라우저 UI가 없으니 안전영역만큼 띄운다 */
+  @media (display-mode: standalone){
+    body{padding-top:env(safe-area-inset-top);padding-bottom:calc(44px + env(safe-area-inset-bottom))}
+  }
 
   /* ── 탭 ─────────────────────────────────── */
   .tabs{display:flex;gap:2px;background:#EAECF1;border-radius:15px;padding:4px;margin:0 0 18px}
@@ -276,6 +299,8 @@
     .brand p{display:none}
     .live{padding:6px 9px;font-size:10px}
     .top-actions .btn{padding:8px 11px;font-size:12px}
+    .top-actions{gap:6px}
+    .top-actions .install{padding:8px 10px;font-size:11.5px}
     .tabs{margin-bottom:14px}
     .tabs button{font-size:12.5px;padding:10px 4px}
     .hero{padding:18px;flex-direction:column;align-items:stretch;gap:14px}
@@ -321,6 +346,7 @@
     </div>
     <div class="top-actions">
       <span class="live"><i></i>LIVE</span>
+      <button class="btn install" id="btnInstall" hidden>📲 앱 설치</button>
       <button class="btn" id="btnInvite">⤴ 초대</button>
     </div>
   </header>
@@ -437,6 +463,18 @@
 window.__pickleErrors = [];
 window.addEventListener('error', e => { try { window.__pickleErrors.push(String(e.message) + ' @' + (e.filename || '').split('/').pop() + ':' + e.lineno); } catch (_) {} });
 window.addEventListener('unhandledrejection', e => { try { window.__pickleErrors.push('rejection: ' + String(e.reason)); } catch (_) {} });
+
+/* PWA 설치 프롬프트는 페이지 초기에 한 번만 오므로 미리 잡아 둔다 */
+window.__pwaDeferred = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  window.__pwaDeferred = e;
+  try { document.dispatchEvent(new Event('pwa:installable')); } catch (_) {}
+});
+window.addEventListener('appinstalled', () => {
+  window.__pwaDeferred = null;
+  try { document.dispatchEvent(new Event('pwa:installed')); } catch (_) {}
+});
 (function(){
 'use strict';
 
@@ -1114,10 +1152,105 @@ function toggleMotion(){
 }
 
 /* ============================================================
+   7-b. PWA — 홈 화면에 앱으로 설치
+   ============================================================ */
+function isStandalone(){
+  try {
+    return window.matchMedia('(display-mode: standalone)').matches
+        || window.matchMedia('(display-mode: fullscreen)').matches
+        || window.matchMedia('(display-mode: minimal-ui)').matches
+        || window.navigator.standalone === true;
+  } catch (_) { return false; }
+}
+function refreshInstallBtn(){
+  const b = $('btnInstall');
+  if (b) b.hidden = isStandalone();          // 이미 앱으로 열렸으면 숨김
+}
+async function doInstall(){
+  const prompt = window.__pwaDeferred;
+  if (prompt && typeof prompt.prompt === 'function'){
+    try { prompt.prompt(); } catch (_) { return openInstallHelp(); }
+    let choice = null;
+    try { choice = await prompt.userChoice; } catch (_) {}
+    window.__pwaDeferred = null;
+    if (choice && choice.outcome === 'accepted') toast('홈 화면에 추가하는 중이에요');
+    else toast('설치를 취소했어요. 나중에 다시 누를 수 있어요');
+    refreshInstallBtn();
+    return;
+  }
+  openInstallHelp();                          // 프롬프트를 안 주는 브라우저 → 수동 안내
+}
+function openInstallHelp(){
+  const ua = navigator.userAgent || '';
+  const isIOS = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isSamsung = /SamsungBrowser/i.test(ua);
+  const isAndroid = /Android/i.test(ua);
+  let head = '설치 방법', steps = '';
+  if (isIOS){
+    head = 'iPhone · iPad (Safari)';
+    steps = `<ol class="steps">
+      <li>이 페이지를 <b>Safari</b>로 엽니다.</li>
+      <li>아래쪽 <b>공유</b> 버튼(□↑)을 누릅니다.</li>
+      <li><b>홈 화면에 추가</b> → <b>추가</b>를 누릅니다.</li>
+    </ol>`;
+  } else if (isSamsung){
+    head = '삼성 인터넷';
+    steps = `<ol class="steps">
+      <li>오른쪽 아래 <b>≡ 메뉴</b>를 누릅니다.</li>
+      <li><b>홈 화면에 추가</b>를 선택합니다.</li>
+      <li><b>추가</b>를 누르면 바탕화면에 <b>사랑 오피스</b> 아이콘이 생깁니다.</li>
+    </ol>`;
+  } else if (isAndroid){
+    head = '크롬 (안드로이드)';
+    steps = `<ol class="steps">
+      <li>오른쪽 위 <b>⋮ 메뉴</b>를 누릅니다.</li>
+      <li><b>앱 설치</b> 또는 <b>홈 화면에 추가</b>를 선택합니다.</li>
+      <li><b>설치</b>를 누르면 바탕화면에 <b>사랑 오피스</b> 아이콘이 생깁니다.</li>
+    </ol>`;
+  } else {
+    head = 'PC 크롬 · 엣지';
+    steps = `<ol class="steps">
+      <li>주소창 오른쪽의 <b>설치</b> 아이콘(모니터↓)을 누릅니다.</li>
+      <li>또는 <b>⋮ 메뉴 → 저장 및 공유 → 앱 설치</b>를 선택합니다.</li>
+    </ol>`;
+  }
+  const html = `
+    <div class="installhead">
+      <img src="icon-192.png" alt="사랑 오피스 아이콘">
+      <div><b>사랑 오피스</b><span>홈 화면에 추가하면 주소창 없이 앱처럼 바로 열립니다</span></div>
+    </div>
+    <div class="minih">${head}</div>
+    ${steps}
+    <p class="note">설치해도 지금 화면·자리·메모는 그대로예요. 홈 화면의 <b>사랑 오피스</b> 아이콘을 눌러 들어오면 됩니다.</p>
+    <div class="rowbtns"><button class="btn primary wide" id="insClose">확인</button></div>`;
+  openSheet('📲 홈 화면에 앱으로 설치', html, body => {
+    body.querySelector('#insClose').onclick = closeSheet;
+  });
+}
+function setupInstall(){
+  const btn = $('btnInstall');
+  if (btn) btn.onclick = doInstall;
+  document.addEventListener('pwa:installable', refreshInstallBtn);
+  document.addEventListener('pwa:installed', () => { refreshInstallBtn(); toast('설치 완료 — 홈 화면에서 바로 열 수 있어요'); });
+  window.matchMedia('(display-mode: standalone)').addEventListener?.('change', refreshInstallBtn);
+  refreshInstallBtn();
+  if (!isStandalone() && !window.__pwaDeferred){
+    // 프롬프트가 늦게 오는 브라우저(삼성 인터넷 등)에서도 3초 뒤 다시 확인
+    setTimeout(refreshInstallBtn, 3000);
+  }
+  if ('serviceWorker' in navigator){
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js', { scope: './' }).catch(() => {});
+    });
+  }
+}
+
+/* ============================================================
    8. 시작
    ============================================================ */
 function init(){
   bindClose();
+  setupInstall();
   buildPins();
   // 모션 설정 복원
   try {

@@ -6,6 +6,7 @@
 
 - 페이지: `index.html` (바닐라 JS + CSS, 외부 라이브러리 없음)
 - 배경: `office-bg.png` (3D 아이소메트릭 오피스 렌더)
+- PWA: `manifest.webmanifest`, `sw.js`, `icon-*.png` (홈 화면 설치·단독 앱 실행·오프라인 셸)
 - 저장소: **Google Forms(익명 쓰기) + Google Sheets(공개 읽기)**
 - 배포: **GitHub Pages** → https://k61667-wq.github.io/pickle-executive-office/
 
@@ -22,6 +23,27 @@
 | 친구 초대 | 상단 **⤴ 초대** → `?as=이름` 링크 복사 |
 
 `?as=사랑`으로 열면 비서실장(사랑)으로 입장합니다.
+
+## 앱으로 설치 (PWA)
+
+휴대폰 홈 화면(바탕화면)에 아이콘으로 추가하면 주소창 없이 단독 앱으로 열립니다.
+
+| 항목 | 내용 |
+| --- | --- |
+| 설치 버튼 | 상단 **📲 앱 설치** (이미 앱으로 열린 상태에서는 자동으로 숨음) |
+| 안드로이드·크롬 | 버튼을 누르면 설치 창이 바로 뜸 · 안 뜨면 `⋮ → 앱 설치 / 홈 화면에 추가` |
+| 삼성 인터넷 | `≡ → 홈 화면에 추가 → 추가` |
+| 아이폰 | Safari `공유(□↑) → 홈 화면에 추가` |
+| 앱 이름 | **사랑 오피스** (`사랑 오피스 · 피클 합동 비서실`) |
+| 실행 모드 | `standalone` (주소창·브라우저 메뉴 없음) |
+| 오프라인 | 마지막으로 열었던 화면은 그대로 표시(자리·메모는 네트워크 필요) |
+
+파일
+
+- `manifest.webmanifest` — 이름·아이콘·`start_url` `/pickle-executive-office/`·`scope`·`display: standalone`
+- `sw.js` — 정적 셸(`index.html`·manifest·아이콘) 캐시. `network-first`라서 새 버전은 바로 반영되고, Google Sheets/Forms 요청은 캐시하지 않고 항상 네트워크로 통과합니다.
+- `icon-192.png`·`icon-512.png`(any), `icon-192-maskable.png`·`icon-512-maskable.png`(maskable), `icon-180.png`(iOS)
+- 아이콘 재생성: `python3 tools/make-icons.py` (Pillow 필요)
 
 ## 화면
 
