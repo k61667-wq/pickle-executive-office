@@ -554,6 +554,30 @@ function buildItems() {
   const items = [];
   const add = (depth, fn) => items.push({ depth, fn });
 
+  /* --- 바닥 엠블럼(ㅅ) --- */
+  add(-1, () => {
+    const cx = 10.35, cy = 9.55;
+    const p = project(cx, cy, 0);
+    const rx = S * 1.05, ry = S * 0.525;
+    const ring = ctx.createRadialGradient(p[0], p[1], rx * 0.2, p[0], p[1], rx);
+    ring.addColorStop(0, 'rgba(167,139,250,.16)');
+    ring.addColorStop(.75, 'rgba(167,139,250,.05)');
+    ring.addColorStop(1, 'rgba(167,139,250,0)');
+    ctx.fillStyle = ring;
+    ctx.beginPath(); ctx.ellipse(p[0], p[1], rx, ry, 0, 0, 7); ctx.fill();
+    ctx.strokeStyle = 'rgba(216,189,138,.38)'; ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.ellipse(p[0], p[1], rx * 0.82, ry * 0.82, 0, 0, 7); ctx.stroke();
+    ctx.strokeStyle = 'rgba(216,189,138,.20)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.ellipse(p[0], p[1], rx * 0.66, ry * 0.66, 0, 0, 7); ctx.stroke();
+    // ㅅ
+    ctx.strokeStyle = 'rgba(196,181,253,.55)'; ctx.lineWidth = Math.max(3, S * 0.07); ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(p[0] - S * 0.3, p[1] + S * 0.22);
+    ctx.lineTo(p[0], p[1] - S * 0.26);
+    ctx.lineTo(p[0] + S * 0.3, p[1] + S * 0.22);
+    ctx.stroke();
+  });
+
   /* --- 라운지 러그 --- */
   add(100, () => {
     const A = project(1.0, 8.15), B = project(4.75, 8.15), Cc = project(4.75, 10.6), D = project(1.0, 10.6);
@@ -576,7 +600,7 @@ function buildItems() {
     // 상판(월넛)
     isoBox(TX, TY, TW, TD, 0.16, 0.66, '#3d271b', {topK: 1.25});
     // 대리석 인레이 (중앙 스트립)
-    isoBox(TX + 1.35, TY + 0.78, TW - 2.7, TD - 1.56, 0.02, 0.822, '#ded6c6', {topK: 1.04});
+    isoBox(TX + 1.35, TY + 0.78, TW - 2.7, TD - 1.56, 0.02, 0.822, '#cfc6b4', {topK: 1.03});
     // 테이블 위 오브제: 노트북, 커피, 서류
     isoBox(TX + 2.4, TY + 0.95, 0.52, 0.38, 0.03, 0.84, '#2c2f38', {topK: 1.5});
     isoBox(TX + 3.0, TY + 0.95, 0.5, 0.38, 0.02, 0.86, '#1d2026', {topK: 1.2});
@@ -884,7 +908,7 @@ const FONT = "'Pretendard','Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',
 
 function drawPickle(a, px, py, t) {
   const s = S * 0.052;              // 기본 스케일
-  const H = 1.02;                   // m
+  const H = 1.14;                   // m
   const hpx = H * S;
   const bob = Math.sin(t * 2.1 + (a._ph || 0)) * hpx * 0.035 + (a._hop || 0);
   const baseY = py - bob;
