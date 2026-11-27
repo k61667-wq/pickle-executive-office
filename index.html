@@ -1,218 +1,442 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#07080d">
-<title>피클 합동 비서실 · Executive Office</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0d14'/%3E%3Cpath d='M32 16 L44 46 M32 16 L20 46' stroke='%23a78bfa' stroke-width='7' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F3F4F7">
+<title>사랑 오피스 · Sarang Office</title>
+<meta name="description" content="사랑님의 피클들이 함께 쓰는 모던 비서실. 실시간으로 자리와 상태, 메모가 공유됩니다.">
 <style>
   :root{
-    --ink:#07080d; --ink2:#0b0e16; --panel:rgba(14,16,24,.82); --line:rgba(216,189,138,.22);
-    --gold:#d8bd8a; --gold2:#f0dfbc; --purple:#a78bfa; --text:#ece9f6; --dim:#9c98b3; --ok:#6ee7b7; --warn:#fbbf24;
-    --font:'Pretendard','Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',system-ui,-apple-system,sans-serif;
+    --bg:#F3F4F7; --card:#FFFFFF; --ink:#0F172A; --ink2:#334155; --muted:#7A8494;
+    --line:#E9EBEF; --navy:#0F1B2D; --mint:#10B981; --violet:#8B5CF6;
+    --r:22px; --shadow:0 1px 2px rgba(16,24,40,.04), 0 14px 34px -24px rgba(16,24,40,.38);
+    --font:"Pretendard",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif;
   }
   *{box-sizing:border-box}
-  html,body{height:100%}
-  body{margin:0;background:radial-gradient(120% 90% at 50% 0%,#141a2b 0%,#080a11 55%,#05060a 100%);color:var(--text);font-family:var(--font);overflow:hidden;-webkit-font-smoothing:antialiased}
-  #stage{position:fixed;inset:0;width:100%;height:100%;display:block;cursor:default}
-  .hud{position:fixed;z-index:5}
-  /* ---------- 상단 ---------- */
-  .topbar{top:0;left:0;right:0;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:14px 18px;pointer-events:none}
-  .brand{display:flex;gap:12px;align-items:center;pointer-events:auto}
-  .brand .mark{width:38px;height:38px;border-radius:11px;background:linear-gradient(150deg,#1b1830,#0c0d16);border:1px solid rgba(167,139,250,.35);display:grid;place-items:center;box-shadow:0 8px 30px rgba(124,58,237,.25),inset 0 1px 0 rgba(255,255,255,.06)}
-  .brand .mark svg{width:20px;height:20px}
-  .brand h1{margin:0;font-size:15px;letter-spacing:.14em;font-weight:700}
-  .brand .sub{font-size:10.5px;letter-spacing:.22em;color:var(--gold);opacity:.85;margin-top:2px}
-  .statline{display:flex;gap:8px;align-items:center;pointer-events:auto;flex-wrap:wrap;justify-content:flex-end}
-  .chip{display:flex;align-items:center;gap:7px;padding:7px 11px;border-radius:999px;background:var(--panel);border:1px solid var(--line);font-size:11.5px;color:#d9d5e8;backdrop-filter:blur(14px);white-space:nowrap}
-  .chip b{font-variant-numeric:tabular-nums;letter-spacing:.06em;color:#fff;font-weight:600}
-  .dot{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 10px var(--ok)}
-  .dot.warn{background:var(--warn);box-shadow:0 0 10px var(--warn)}
-  .dot.err{background:#f87171;box-shadow:0 0 10px #f87171}
-  .iconbtn{width:34px;height:34px;border-radius:10px;background:var(--panel);border:1px solid var(--line);color:#d9d5e8;display:grid;place-items:center;cursor:pointer;font-size:13px;backdrop-filter:blur(14px)}
-  .iconbtn:hover{border-color:rgba(216,189,138,.5);color:#fff}
-  /* ---------- 패널 ---------- */
-  .panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;backdrop-filter:blur(18px) saturate(120%);box-shadow:0 18px 60px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.05);overflow:hidden;display:flex;flex-direction:column}
-  .panel h2{margin:0;padding:13px 15px 11px;font-size:11px;letter-spacing:.2em;color:var(--gold);font-weight:600;border-bottom:1px solid rgba(255,255,255,.06);display:flex;justify-content:space-between;align-items:center}
-  .panel h2 span{color:var(--dim);letter-spacing:.06em;font-size:10.5px}
-  .left{left:18px;top:76px;width:266px;max-height:calc(100vh - 190px)}
-  .right{right:18px;top:76px;width:320px;max-height:calc(100vh - 190px)}
-  .list{overflow-y:auto;padding:8px;scrollbar-width:thin;scrollbar-color:rgba(216,189,138,.28) transparent}
-  .list::-webkit-scrollbar{width:6px}
-  .list::-webkit-scrollbar-thumb{background:rgba(216,189,138,.25);border-radius:99px}
-  .who{display:flex;gap:10px;padding:9px 9px;border-radius:12px;cursor:pointer;transition:.15s;border:1px solid transparent}
-  .who:hover{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.08)}
-  .who.sel{background:rgba(167,139,250,.12);border-color:rgba(167,139,250,.35)}
-  .who .av{width:30px;height:30px;border-radius:9px;flex:0 0 auto;display:grid;place-items:center;font-size:12px;font-weight:700;color:#101018;position:relative;box-shadow:inset 0 -6px 12px rgba(0,0,0,.18)}
-  .who .av i{position:absolute;right:-2px;bottom:-2px;width:9px;height:9px;border-radius:50%;border:2px solid #0b0e16;background:var(--ok)}
-  .who .nm{font-size:12.5px;font-weight:600;display:flex;gap:6px;align-items:center}
-  .who .nm em{font-style:normal;font-size:9.5px;color:#0d0b16;background:var(--gold);padding:1px 5px;border-radius:5px;letter-spacing:.04em}
-  .who .st{font-size:11px;color:var(--dim);margin-top:2px;line-height:1.35;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-  .who .zone{font-size:9.5px;color:var(--gold);opacity:.7;letter-spacing:.08em;margin-top:3px}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:var(--font); color:var(--ink); background:var(--bg);
+    background-image:radial-gradient(1100px 520px at 50% -140px, #FFFFFF 0%, rgba(255,255,255,0) 70%);
+    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+    padding:0 16px 44px;
+  }
+  button{font-family:inherit; color:inherit}
+  .wrap{max-width:1040px;margin:0 auto}
+
+  /* ── 헤더 ───────────────────────────────── */
+  header.top{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:22px 2px 16px}
+  .brand{display:flex;align-items:center;gap:12px;min-width:0}
+  .logo{
+    width:46px;height:46px;flex:0 0 46px;border-radius:15px;background:var(--navy);color:#fff;
+    display:grid;place-items:center;font-weight:800;font-size:19px;letter-spacing:.2px;
+    box-shadow:0 10px 20px -12px rgba(15,27,45,.75)
+  }
+  .brand h1{margin:0;font-size:19px;line-height:1.2;letter-spacing:-.4px;font-weight:750;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .brand h1 span{font-weight:550;color:var(--muted);font-size:15px;letter-spacing:-.2px}
+  .brand p{margin:3px 0 0;font-size:12.5px;color:var(--muted);letter-spacing:-.1px}
+  .top-actions{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+  .live{
+    display:inline-flex;align-items:center;gap:6px;background:#ECFDF5;color:#0E9F6E;
+    font-size:11px;font-weight:800;letter-spacing:.9px;padding:7px 11px;border-radius:99px;border:1px solid #D1FAE5
+  }
+  .live i{width:6px;height:6px;border-radius:50%;background:var(--mint);box-shadow:0 0 0 0 rgba(16,185,129,.55);animation:pulse 2.2s ease-out infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(16,185,129,.5)}70%{box-shadow:0 0 0 7px rgba(16,185,129,0)}100%{box-shadow:0 0 0 0 rgba(16,185,129,0)}}
+  .btn{
+    border:1px solid var(--line);background:#fff;border-radius:13px;padding:10px 14px;
+    font-size:13px;font-weight:650;cursor:pointer;transition:transform .12s ease, box-shadow .18s ease, background .18s ease;
+    display:inline-flex;align-items:center;gap:7px;white-space:nowrap
+  }
+  .btn:hover{background:#FCFCFD;box-shadow:0 6px 16px -12px rgba(16,24,40,.5)}
+  .btn:active{transform:translateY(1px)}
+  .btn.primary{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .btn.primary:hover{background:#182639}
+  .btn.wide{width:100%;justify-content:center;padding:13px 16px;font-size:14px;border-radius:14px}
+  .btn.danger{background:#fff;color:#DC2626;border-color:#FEE2E2}
+  .btn.ghost{background:transparent}
+
+  /* ── 탭 ─────────────────────────────────── */
+  .tabs{display:flex;gap:2px;background:#EAECF1;border-radius:15px;padding:4px;margin:0 0 18px}
+  .tabs button{
+    flex:1 1 0;border:0;background:transparent;border-radius:11px;padding:11px 6px;
+    font-size:13.5px;font-weight:650;color:#68707F;cursor:pointer;letter-spacing:-.2px;
+    transition:background .18s ease, color .18s ease, box-shadow .18s ease;white-space:nowrap
+  }
+  .tabs button:hover{color:var(--ink)}
+  .tabs button.on{background:#fff;color:var(--ink);box-shadow:0 2px 6px rgba(16,24,40,.09), 0 1px 1px rgba(16,24,40,.04)}
+  .tabs .badge-n{display:inline-block;margin-left:5px;background:#EDE9FE;color:#6D28D9;font-size:10px;font-weight:800;padding:1px 5px;border-radius:99px;vertical-align:1px}
+
+  /* ── 공통 카드 ───────────────────────────── */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+  section[data-panel]{display:none;animation:fade .28s ease}
+  section[data-panel].on{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+  /* ── 히어로 ──────────────────────────────── */
+  .hero{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;padding:24px 24px 22px;margin-bottom:14px}
+  .badge{display:inline-block;background:#F1F2F5;color:#5B6472;font-size:11.5px;font-weight:750;letter-spacing:.2px;padding:6px 11px;border-radius:9px}
+  .hero h2{margin:14px 0 6px;font-size:22px;line-height:1.32;letter-spacing:-.7px;font-weight:780}
+  .hero h2 b{color:var(--violet);font-weight:800}
+  .hero p{margin:0;color:var(--muted);font-size:13.5px;letter-spacing:-.2px}
+
+  /* ── 필 ─────────────────────────────────── */
+  .pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+  .pill{
+    display:inline-flex;align-items:center;gap:7px;background:#fff;border:1px solid var(--line);
+    border-radius:99px;padding:9px 14px;font-size:12.5px;font-weight:650;color:var(--ink2);
+    box-shadow:0 2px 5px rgba(16,24,40,.035);cursor:default;transition:transform .12s ease, background .18s ease
+  }
+  .pill b{font-weight:800;color:var(--ink)}
+  .pill.click{cursor:pointer}
+  .pill.click:hover{background:#FCFCFD}
+  .pill.dark{background:var(--navy);border-color:var(--navy);color:#fff}
+  .pill.dark b{color:#fff}
+  .pill .sw{width:8px;height:8px;border-radius:50%;background:#4ADE80;box-shadow:0 0 0 3px rgba(74,222,128,.16)}
+  .pill.dark .sw{background:#A7F3D0;box-shadow:0 0 0 3px rgba(167,243,208,.2)}
+  .pill .mini-ava{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:800;color:#fff;background:linear-gradient(160deg,#8B5CF6,#6D28D9)}
+  .pill.off{background:#fff;color:#8A93A1}
+
+  /* ── 오피스 맵 ───────────────────────────── */
+  .mapcard{padding:10px 10px 10px;border-radius:26px;margin-bottom:16px}
+  .map-head{display:flex;align-items:center;justify-content:space-between;padding:2px 8px 10px;font-size:11.5px;color:var(--muted);font-weight:650;letter-spacing:.1px}
+  .map-head .sync{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:#5B6472;font-weight:600}
+  .map-head .sync i{width:6px;height:6px;border-radius:50%;background:#CBD5E1}
+  .map-head .sync.ok i{background:var(--mint)}
+  .map-head .sync.warn i{background:#F59E0B}
+  .map-head .sync.err i{background:#EF4444}
+  .stage{position:relative;border-radius:19px;overflow:hidden;background:#EFEFEC;line-height:0}
+  .stage img{width:100%;height:auto;display:block;user-select:none;-webkit-user-drag:none}
+  .stage::after{content:"";position:absolute;inset:0;border-radius:19px;box-shadow:inset 0 0 0 1px rgba(16,24,40,.07);pointer-events:none}
+
+  .zp{
+    position:absolute;transform:translateY(-50%);display:inline-flex;align-items:center;gap:6px;
+    background:rgba(17,24,39,.84);color:#fff;border:0;border-radius:99px;padding:6px 11px;
+    font-size:11.5px;font-weight:700;letter-spacing:-.2px;cursor:pointer;z-index:6;
+    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+    box-shadow:0 6px 16px -10px rgba(0,0,0,.7);transition:transform .14s ease, background .18s ease
+  }
+  .zp:hover{background:rgba(17,24,39,.95);transform:translateY(-50%) scale(1.04)}
+  .zp i{width:6px;height:6px;border-radius:50%;background:#4ADE80;box-shadow:0 0 0 2px rgba(74,222,128,.22);flex:0 0 6px}
+
+  .node{position:absolute;transform:translate(-50%,-50%);background:none;border:0;padding:0;cursor:pointer;z-index:7;display:flex;flex-direction:column;align-items:center;gap:2px}
+  .bob{display:block;transform-origin:50% 100%}
+  body.motion .bob{animation:breathe 4.6s ease-in-out infinite}
+  @keyframes breathe{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-3px) scale(1.045)}}
+  .pick{
+    width:40px;height:33px;border-radius:52% 52% 46% 46%/62% 62% 40% 40%;
+    display:grid;place-items:center;font-weight:800;font-size:15px;letter-spacing:0;
+    border:2px solid rgba(255,255,255,.92);
+    box-shadow:0 8px 16px -8px rgba(15,23,42,.55), inset 0 -4px 8px rgba(0,0,0,.12);
+  }
+  .pick.me{width:46px;height:38px;font-size:18px;border-width:2.5px}
+  .node-name{font-size:9.5px;font-weight:700;color:#1F2937;background:rgba(255,255,255,.92);padding:1px 6px;border-radius:99px;box-shadow:0 2px 6px rgba(15,23,42,.14);letter-spacing:-.2px;max-width:76px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .node:hover .pick{transform:scale(1.06)}
+
+  /* ── 공간 카드 그리드 ────────────────────── */
+  .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .space{padding:16px 16px 15px;text-align:left;cursor:pointer;transition:transform .14s ease, box-shadow .2s ease;display:block;width:100%}
+  .space:hover{transform:translateY(-2px);box-shadow:0 2px 4px rgba(16,24,40,.04), 0 20px 40px -26px rgba(16,24,40,.45)}
+  .space-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .zname{font-size:14px;font-weight:750;letter-spacing:-.3px}
+  .zcount{font-size:11px;font-weight:700;color:#6D28D9;background:#F3EEFF;border-radius:99px;padding:3px 8px}
+  .zcount.zero{color:#8A93A1;background:#F1F2F5}
+  .zdesc{margin-top:5px;font-size:11.5px;color:var(--muted);letter-spacing:-.2px}
+  .zwho{display:flex;align-items:center;gap:6px;margin-top:12px;min-height:26px;flex-wrap:wrap}
+  .zwho .nm{font-size:12px;font-weight:650;color:var(--ink2)}
+
+  /* ── 아바타 ─────────────────────────────── */
+  .ava{
+    width:26px;height:26px;border-radius:50%;display:inline-grid;place-items:center;
+    font-size:11px;font-weight:800;border:2px solid #fff;box-shadow:0 3px 8px -5px rgba(15,23,42,.6);flex:0 0 auto
+  }
+  .ava.s{width:28px;height:28px;font-size:13px;border-radius:46%}
+
+  /* ── 목록 · 상태 ────────────────────────── */
+  .sec-head{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;padding:4px 4px 12px}
+  .sec-head h3{margin:0;font-size:17px;font-weight:780;letter-spacing:-.5px}
+  .sec-head p{margin:4px 0 0;font-size:12.5px;color:var(--muted)}
+  .sec-head .count{font-size:12px;font-weight:700;color:#6D28D9;background:#F3EEFF;border-radius:99px;padding:5px 10px;white-space:nowrap}
+
+  .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
+  .stat{padding:15px 14px;border-radius:18px}
+  .stat .k{font-size:11.5px;color:var(--muted);font-weight:600;letter-spacing:-.2px}
+  .stat .v{margin-top:6px;font-size:22px;font-weight:800;letter-spacing:-.8px}
+  .stat .v small{font-size:12px;font-weight:650;color:var(--muted);margin-left:2px}
+
+  .list{padding:6px 6px}
+  .row{display:flex;align-items:center;gap:11px;padding:11px 10px;border-radius:14px;cursor:pointer;transition:background .16s ease}
+  .row:hover{background:#FAFAFC}
+  .row + .row{border-top:1px solid #F2F3F6}
+  .row .rname{font-size:13px;font-weight:700;letter-spacing:-.2px;display:flex;align-items:center;gap:6px}
+  .row .rname em{font-style:normal;font-size:10px;font-weight:750;color:#6D28D9;background:#F3EEFF;border-radius:6px;padding:1px 5px}
+  .row .rsub{font-size:11.5px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .row .rtime{font-size:10.5px;color:#9AA2AF;margin-left:auto;flex:0 0 auto}
+
+  .bars{padding:16px 18px 18px}
+  .bar + .bar{margin-top:13px}
+  .bar .bl{display:flex;justify-content:space-between;font-size:12px;font-weight:650;color:var(--ink2);margin-bottom:6px}
+  .bar .bl span:last-child{color:var(--muted);font-weight:600}
+  .track{height:7px;border-radius:99px;background:#F0F1F5;overflow:hidden}
+  .track i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#A78BFA,#8B5CF6);transition:width .45s ease}
+
+  /* 좌석 */
+  .seats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+  .seat{padding:14px;border-radius:18px;display:flex;flex-direction:column;gap:9px;min-height:128px}
+  .seat .sh{display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:11.5px;font-weight:700;color:#5B6472}
+  .seat .tag{font-size:10px;font-weight:700;border-radius:99px;padding:2px 7px;background:#F1F2F5;color:#8A93A1}
+  .seat.busy .tag{background:#ECFDF5;color:#0E9F6E}
+  .seat .who{display:flex;align-items:center;gap:8px;min-height:28px}
+  .seat .who .n{font-size:13px;font-weight:700;letter-spacing:-.2px}
+  .seat .who .s{font-size:11px;color:var(--muted);margin-top:1px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .seat .empty{font-size:12px;color:#A3AAB6;padding:4px 0}
+  .seat .mini{margin-top:auto;border:1px solid var(--line);background:#fff;border-radius:10px;padding:7px 9px;font-size:11.5px;font-weight:650;cursor:pointer;color:#475569}
+  .seat .mini:hover{background:#F8F9FB}
+  .seat .mini.mine{background:var(--navy);color:#fff;border-color:var(--navy)}
+
   /* 메모 */
-  .notes{overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:9px;flex:1;min-height:80px}
-  .note{font-size:12px;line-height:1.5;color:#ddd9ea}
-  .note .meta{display:flex;gap:7px;align-items:center;font-size:10px;color:var(--dim);margin-bottom:3px}
-  .note .meta b{color:#fff;font-weight:600;font-size:11px}
-  .note .tx{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:8px 10px;white-space:pre-wrap;word-break:break-word}
-  .compose{border-top:1px solid rgba(255,255,255,.07);padding:10px;display:flex;gap:8px;align-items:flex-end;background:rgba(0,0,0,.2)}
-  .compose textarea{flex:1;resize:none;height:38px;max-height:96px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:11px;color:var(--text);font-family:var(--font);font-size:12px;padding:10px 11px;outline:none;line-height:1.35}
-  .compose textarea:focus{border-color:rgba(167,139,250,.55);box-shadow:0 0 0 3px rgba(167,139,250,.12)}
-  .send{height:38px;padding:0 13px;border-radius:11px;border:1px solid rgba(216,189,138,.4);background:linear-gradient(180deg,rgba(216,189,138,.24),rgba(216,189,138,.1));color:var(--gold2);font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;letter-spacing:.04em}
-  .send:hover{background:linear-gradient(180deg,rgba(216,189,138,.36),rgba(216,189,138,.16))}
-  /* 내 상태 */
-  .me{padding:10px 12px;display:grid;gap:7px;border-top:1px solid rgba(255,255,255,.07);background:rgba(0,0,0,.18)}
-  .me .row{display:flex;gap:7px;align-items:center}
-  .me input,.me select{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:9px;color:var(--text);font-family:var(--font);font-size:11.5px;padding:7px 9px;outline:none;min-width:0}
-  .me select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--dim) 50%),linear-gradient(135deg,var(--dim) 50%,transparent 50%);background-position:calc(100% - 14px) 50%,calc(100% - 9px) 50%;background-size:5px 5px,5px 5px;background-repeat:no-repeat}
-  .me input:focus,.me select:focus{border-color:rgba(167,139,250,.5)}
-  .me .whoami{font-size:11px;color:var(--dim);display:flex;justify-content:space-between;align-items:center;gap:8px}
-  .me .whoami b{color:#fff;font-weight:600}
-  .linkbtn{background:none;border:none;color:var(--gold);font-family:var(--font);font-size:11px;cursor:pointer;padding:0;text-decoration:underline;text-underline-offset:3px;opacity:.85}
-  /* 하단 */
-  .bottom{bottom:0;left:0;right:0;padding:12px 18px 16px;display:flex;justify-content:center;gap:10px;pointer-events:none}
-  .zonebar{pointer-events:auto;display:flex;gap:6px;padding:6px;border-radius:14px;background:var(--panel);border:1px solid var(--line);backdrop-filter:blur(16px);flex-wrap:wrap;justify-content:center}
-  .zonebar button{background:transparent;border:none;color:#cfcbdf;font-family:var(--font);font-size:11.5px;padding:6px 11px;border-radius:9px;cursor:pointer;display:flex;gap:7px;align-items:center}
-  .zonebar button:hover{background:rgba(255,255,255,.07);color:#fff}
-  .zonebar button b{font-weight:600;color:var(--gold2);font-variant-numeric:tabular-nums}
-  /* 모달 */
-  .modal{position:fixed;inset:0;z-index:20;display:none;place-items:center;background:rgba(4,5,9,.72);backdrop-filter:blur(6px);padding:18px}
-  .modal.on{display:grid}
-  .card{width:min(440px,100%);max-height:88vh;overflow:auto;background:linear-gradient(180deg,#111420,#0a0c13);border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:0 30px 90px rgba(0,0,0,.7)}
-  .card h3{margin:0 0 4px;font-size:16px;letter-spacing:.02em}
-  .card p{margin:0 0 14px;font-size:12px;color:var(--dim);line-height:1.6}
-  .card label{display:block;font-size:10.5px;letter-spacing:.14em;color:var(--gold);margin:12px 0 6px}
-  .card input[type=text]{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:11px;color:#fff;font-family:var(--font);font-size:13px;padding:11px 12px;outline:none}
-  .card input[type=text]:focus{border-color:rgba(167,139,250,.6)}
-  .swatches{display:flex;gap:8px;flex-wrap:wrap}
-  .sw{width:28px;height:28px;border-radius:9px;cursor:pointer;border:2px solid transparent;position:relative}
-  .sw.on{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.12)}
-  .card select{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:11px;color:#fff;font-family:var(--font);font-size:13px;padding:11px 12px;outline:none}
-  .card .go{width:100%;margin-top:18px;height:44px;border-radius:12px;border:1px solid rgba(167,139,250,.5);background:linear-gradient(180deg,#7c4dff,#5b21b6);color:#fff;font-family:var(--font);font-size:13.5px;font-weight:700;letter-spacing:.04em;cursor:pointer}
-  .card .go:hover{filter:brightness(1.1)}
-  .card .ghost{width:100%;margin-top:8px;height:38px;border-radius:11px;border:1px solid rgba(255,255,255,.12);background:transparent;color:var(--dim);font-family:var(--font);font-size:12px;cursor:pointer}
-  .codebox{margin-top:10px;background:#05060a;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;color:#b9c6e6;white-space:pre-wrap;word-break:break-all;line-height:1.5;max-height:150px;overflow:auto}
-  .hint{position:fixed;left:50%;bottom:78px;transform:translateX(-50%);z-index:6;font-size:11.5px;color:#cfcbdf;background:rgba(10,12,19,.86);border:1px solid var(--line);border-radius:999px;padding:8px 16px;backdrop-filter:blur(12px);opacity:0;transition:.5s;pointer-events:none;white-space:nowrap}
-  .hint.on{opacity:1}
-  .toast{position:fixed;left:50%;top:70px;transform:translate(-50%,-12px);z-index:30;background:rgba(12,14,22,.95);border:1px solid var(--line);border-radius:12px;padding:10px 16px;font-size:12px;opacity:0;transition:.28s;pointer-events:none;box-shadow:0 16px 40px rgba(0,0,0,.6)}
+  .compose{padding:16px;margin-bottom:14px}
+  .compose .who{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);font-weight:600;margin-bottom:10px}
+  .compose textarea{
+    width:100%;min-height:74px;resize:vertical;border:1px solid var(--line);border-radius:14px;
+    padding:12px 13px;font-family:inherit;font-size:13.5px;color:var(--ink);background:#FCFCFD;outline:none;letter-spacing:-.2px
+  }
+  .compose textarea:focus{border-color:#C9C2F5;background:#fff;box-shadow:0 0 0 3px rgba(139,92,246,.10)}
+  .compose .row2{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px}
+  .compose .hint{font-size:11px;color:#A3AAB6}
+  .memo{padding:14px 16px}
+  .memo + .memo{border-top:1px solid #F2F3F6}
+  .memo .mh{display:flex;align-items:center;gap:8px}
+  .memo .mh b{font-size:12.5px;font-weight:750}
+  .memo .mh .zone{font-size:10px;font-weight:700;color:#6D28D9;background:#F3EEFF;border-radius:6px;padding:1px 6px}
+  .memo .mh time{margin-left:auto;font-size:10.5px;color:#9AA2AF}
+  .memo .tx{margin-top:6px;font-size:13px;line-height:1.5;color:var(--ink2);letter-spacing:-.2px;white-space:pre-wrap;word-break:break-word}
+  .empty-state{padding:34px 16px;text-align:center;color:#9AA2AF;font-size:12.5px}
+
+  /* ── 시트(모달) ──────────────────────────── */
+  .scrim{position:fixed;inset:0;background:rgba(15,23,42,.42);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);z-index:80;opacity:0;transition:opacity .2s ease}
+  .scrim.on{opacity:1}
+  .sheet{
+    position:fixed;z-index:90;left:50%;top:50%;transform:translate(-50%,-46%) scale(.98);
+    width:min(440px, calc(100vw - 28px));max-height:min(86vh, 760px);overflow:auto;
+    background:#fff;border-radius:24px;box-shadow:0 30px 90px -30px rgba(15,23,42,.6);
+    opacity:0;pointer-events:none;transition:opacity .2s ease, transform .24s cubic-bezier(.2,.8,.2,1)
+  }
+  .sheet.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+  .sheet-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:18px 20px 10px}
+  .sheet-head h3{margin:0;font-size:17px;font-weight:780;letter-spacing:-.5px}
+  .xbtn{border:0;background:#F3F4F7;width:30px;height:30px;border-radius:50%;font-size:13px;color:#5B6472;cursor:pointer;display:grid;place-items:center}
+  .xbtn:hover{background:#EAECF1}
+  .sheet-body{padding:4px 20px 20px}
+  .lbl{display:block;font-size:11.5px;font-weight:750;color:#5B6472;margin:14px 0 7px;letter-spacing:-.1px}
+  .inp,select.inp{width:100%;border:1px solid var(--line);border-radius:12px;background:#FCFCFD;padding:11px 12px;font-family:inherit;font-size:13.5px;color:var(--ink);outline:none;letter-spacing:-.2px}
+  .inp:focus{border-color:#C9C2F5;background:#fff;box-shadow:0 0 0 3px rgba(139,92,246,.10)}
+  select.inp{appearance:none;background-image:linear-gradient(45deg,transparent 50%,#94A3B8 50%),linear-gradient(135deg,#94A3B8 50%,transparent 50%);background-position:calc(100% - 17px) 50%,calc(100% - 12px) 50%;background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:34px}
+  .swatches{display:flex;gap:9px;flex-wrap:wrap}
+  .sw{width:30px;height:30px;border-radius:50%;border:2px solid #fff;background:var(--c);cursor:pointer;box-shadow:0 0 0 1px #E9EBEF;transition:transform .12s ease, box-shadow .15s ease}
+  .sw:hover{transform:scale(1.07)}
+  .sw.on{box-shadow:0 0 0 2px #0F1B2D;transform:scale(1.05)}
+  .linkbox{display:flex;gap:8px;margin-top:4px}
+  .linkbox .inp{flex:1;min-width:0;font-size:12px;background:#F7F8FA}
+  .note{font-size:12px;color:var(--muted);line-height:1.6;margin-top:12px;letter-spacing:-.2px}
+  pre.code{
+    background:#0F172A;color:#E2E8F0;border-radius:14px;padding:13px 14px;font-size:11px;line-height:1.6;
+    overflow:auto;margin:10px 0 0;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre
+  }
+  .sheet .rowbtns{display:flex;gap:8px;margin-top:18px}
+  .sheet .rowbtns .btn{flex:1;justify-content:center}
+  .who-head{display:flex;align-items:center;gap:12px;padding:2px 0 4px}
+  .who-head .big{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;font-size:20px;font-weight:800;border:3px solid #fff;box-shadow:0 8px 18px -10px rgba(15,23,42,.6)}
+  .who-head .t{font-size:16px;font-weight:780;letter-spacing:-.4px}
+  .who-head .u{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .kv{display:grid;grid-template-columns:78px 1fr;gap:8px 10px;margin-top:14px;font-size:12.5px}
+  .kv .k{color:var(--muted);font-weight:600}
+  .kv .v{color:var(--ink2);font-weight:600;word-break:break-word}
+  .divider{height:1px;background:#F1F2F5;margin:16px 0 6px}
+  .minih{font-size:11.5px;font-weight:750;color:#5B6472;margin:14px 0 8px}
+
+  .toast{
+    position:fixed;left:50%;bottom:26px;transform:translate(-50%,12px);z-index:120;
+    background:#0F172A;color:#fff;font-size:12.5px;font-weight:650;padding:11px 16px;border-radius:12px;
+    box-shadow:0 18px 40px -18px rgba(15,23,42,.8);opacity:0;pointer-events:none;transition:opacity .2s ease, transform .24s ease
+  }
   .toast.on{opacity:1;transform:translate(-50%,0)}
-  @media (max-width:980px){
-    .left{display:none}
-    .right{left:8px;right:8px;top:auto;bottom:112px;width:auto;max-height:40vh;display:flex}
-    .topbar{padding:9px 11px;gap:8px}
-    .brand{gap:8px}
-    .brand .mark{width:30px;height:30px;border-radius:9px}
-    .brand .mark svg{width:16px;height:16px}
-    .brand h1{font-size:12.5px;letter-spacing:.06em;white-space:nowrap}
-    .brand .sub{font-size:8px;letter-spacing:.13em;white-space:nowrap}
-    .statline{gap:5px}
-    .chip{font-size:10px;padding:5px 8px;gap:5px}
-    .chip.hide-sm{display:none}
-    .iconbtn{width:29px;height:29px;font-size:12px}
-    .zonebar{gap:2px;padding:4px}
-    .zonebar button{font-size:10.5px;padding:5px 8px;gap:4px}
-    .bottom{padding:8px 8px 10px}
-    .hint{bottom:64px;font-size:10px;padding:6px 11px}
-    .notes{padding:8px 10px}
-    .note{font-size:11.5px}
+
+  footer.foot{margin-top:26px;text-align:center;font-size:11px;color:#A3AAB6;line-height:1.7;letter-spacing:-.1px}
+  footer.foot a{color:#7A8494}
+
+  /* ── 반응형 ─────────────────────────────── */
+  @media (max-width:720px){
+    body{padding:0 12px 34px}
+    header.top{padding:16px 2px 12px}
+    .logo{width:42px;height:42px;flex-basis:42px;border-radius:13px;font-size:17px}
+    .brand h1{font-size:16.5px}
+    .brand h1 span{display:block;font-size:11px;font-weight:600;margin-top:2px}
+    .brand p{display:none}
+    .live{padding:6px 9px;font-size:10px}
+    .top-actions .btn{padding:8px 11px;font-size:12px}
+    .tabs{margin-bottom:14px}
+    .tabs button{font-size:12.5px;padding:10px 4px}
+    .hero{padding:18px;flex-direction:column;align-items:stretch;gap:14px}
+    .hero h2{font-size:18.5px;margin-top:12px}
+    .hero p{font-size:12.5px}
+    .hero .btn{width:100%;justify-content:center}
+    .pills{gap:6px}
+    .pill{padding:8px 11px;font-size:11.5px}
+    .mapcard{padding:8px;border-radius:22px}
+    .map-head{padding:0 6px 8px}
+    .zp{font-size:9.5px;padding:4px 8px;gap:5px}
+    .zp i{width:5px;height:5px;flex-basis:5px}
+    .pick{width:30px;height:25px;font-size:12px;border-width:1.5px}
+    .pick.me{width:34px;height:28px;font-size:14px}
+    .node-name{font-size:8.5px;padding:0 4px;max-width:58px}
+    .grid2{gap:9px}
+    .space{padding:13px 13px 12px;border-radius:18px}
+    .zname{font-size:13px}
+    .zdesc{font-size:10.5px}
+    .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .stat .v{font-size:19px}
+    .seats{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+    .seat{padding:12px;min-height:118px}
+    .sheet{left:0;right:0;top:auto;bottom:0;width:100%;max-height:88vh;transform:translateY(16px);border-radius:24px 24px 0 0}
+    .sheet.on{transform:translateY(0)}
+    .sheet-body{padding-bottom:26px}
+  }
+  @media (prefers-reduced-motion: reduce){
+    body.motion .bob{animation:none}
   }
 </style>
 </head>
-<body>
-<canvas id="stage"></canvas>
+<body class="motion">
+<div class="wrap">
 
-<header class="hud topbar">
-  <div class="brand">
-    <div class="mark">
-      <svg viewBox="0 0 64 64" fill="none"><path d="M32 15 L45 48 M32 15 L19 48" stroke="#c4b5fd" stroke-width="7" stroke-linecap="round"/><circle cx="26" cy="30" r="2.6" fill="#e9e4ff"/><circle cx="38" cy="30" r="2.6" fill="#e9e4ff"/><circle cx="26" cy="30" r="1.1" fill="#2b1a55"/><circle cx="38" cy="30" r="1.1" fill="#2b1a55"/></svg>
+  <header class="top">
+    <div class="brand">
+      <div class="logo">S.</div>
+      <div>
+        <h1>사랑 오피스 <span>· Sarang Office</span></h1>
+        <p>사랑 비서실 · 가동 중</p>
+      </div>
     </div>
-    <div>
-      <h1>피클 합동 비서실</h1>
-      <div class="sub">PICKLE EXECUTIVE OFFICE</div>
+    <div class="top-actions">
+      <span class="live"><i></i>LIVE</span>
+      <button class="btn" id="btnInvite">⤴ 초대</button>
     </div>
-  </div>
-  <div class="statline">
-    <div class="chip"><span class="dot" id="syncDot"></span><span id="syncText">연결 중…</span></div>
-    <div class="chip"><b id="clock">--:--</b><span class="hide-sm" style="opacity:.6">KST</span></div>
-    <div class="chip">참석 <b id="cntPeople">0</b> · 메모 <b id="cntNotes">0</b></div>
-    <button class="iconbtn" id="btnInvite" title="초대 · API 안내">⤴</button>
-    <button class="iconbtn" id="btnRefresh" title="새로고침">⟳</button>
-  </div>
-</header>
+  </header>
 
-<aside class="panel left hud" id="panelLeft">
-  <h2>참석자 <span id="seatFree">여유석 -</span></h2>
-  <div class="list" id="peopleList"></div>
-</aside>
+  <nav class="tabs" id="tabs" aria-label="오피스 탭">
+    <button data-tab="office" class="on">오피스</button>
+    <button data-tab="meeting">회의실</button>
+    <button data-tab="studio">작업실</button>
+    <button data-tab="status">현황</button>
+    <button data-tab="memo">메모</button>
+  </nav>
 
-<aside class="panel right hud" id="panelRight">
-  <h2>비서실 메모 <span id="noteCount">0</span></h2>
-  <div class="notes" id="noteList"></div>
-  <div class="compose">
-    <textarea id="noteInput" placeholder="비서실에 한 줄 남기기 (Enter 전송)"></textarea>
-    <button class="send" id="noteSend">남기기</button>
-  </div>
-  <div class="me" id="meBox">
-    <div class="whoami"><span id="meName">아직 입장 전</span><button class="linkbtn" id="meJoin">내 피클 입장</button></div>
-    <div class="row">
-      <select id="meSeat" aria-label="자리 선택"></select>
-    </div>
-    <div class="row">
-      <input id="meStatus" maxlength="40" placeholder="상태 메시지 (예: 계약서 검토 중)">
-    </div>
-    <div class="row">
-      <input id="meMemo" maxlength="60" placeholder="한 줄 메모">
-    </div>
-  </div>
-</aside>
+  <main>
+    <!-- 오피스 -->
+    <section data-panel="office" class="on" id="panel-office">
+      <div class="card hero">
+        <div class="hero-main">
+          <span class="badge">Workspace</span>
+          <h2 id="heroTitle">대표님, <b>4</b>개 파트가 대기 중이에요</h2>
+          <p>공간이나 담당자를 탭하면 최근 진행 현황을 바로 볼 수 있어요.</p>
+        </div>
+        <button class="btn primary" id="btnJoin">내 피클 입장</button>
+      </div>
 
-<div class="hud bottom">
-  <div class="zonebar" id="zonebar"></div>
+      <div class="pills">
+        <button class="pill dark click" id="btnMotion" aria-pressed="true"><span class="sw"></span>모션 ON</button>
+        <span class="pill">가동 <b id="pillZones">0</b>파트</span>
+        <button class="pill click" id="pillSalang"><span class="mini-ava">ㅅ</span>사랑 피클</button>
+        <button class="pill click" id="pillMe" hidden></button>
+      </div>
+
+      <div class="card mapcard">
+        <div class="map-head">
+          <span>오피스 맵 · 실시간 배치</span>
+          <span class="sync" id="syncBox"><i></i><b id="syncText">연결 중…</b></span>
+        </div>
+        <div class="stage" id="stage">
+          <img src="office-bg.png" alt="사랑 오피스 아이소메트릭 도면 — 대회의실, 지휘실, 작업실, 라운지" id="stageImg" draggable="false">
+          <div id="mapPins"></div>
+          <div id="mapNodes"></div>
+        </div>
+      </div>
+
+      <div class="grid2" id="spaceGrid"></div>
+    </section>
+
+    <!-- 회의실 -->
+    <section data-panel="meeting" id="panel-meeting">
+      <div class="sec-head">
+        <div><h3>대회의실</h3><p>6인 원목 테이블 · 유리 파티션 · 화상회의</p></div>
+        <span class="count" id="meetingCount">0석 사용 중</span>
+      </div>
+      <div class="seats" id="meetingSeats"></div>
+      <div class="sec-head" style="padding-top:22px"><div><h3>회의실 메모</h3><p>이 공간에서 남긴 최근 기록</p></div></div>
+      <div class="card" id="meetingNotes"></div>
+    </section>
+
+    <!-- 작업실 -->
+    <section data-panel="studio" id="panel-studio">
+      <div class="sec-head">
+        <div><h3>작업실</h3><p>워크스테이션 3석 · 집중 작업 부스</p></div>
+        <span class="count" id="studioCount">0석 사용 중</span>
+      </div>
+      <div class="seats" id="studioSeats"></div>
+      <div class="sec-head" style="padding-top:22px"><div><h3>작업실 메모</h3><p>이 공간에서 남긴 최근 기록</p></div></div>
+      <div class="card" id="studioNotes"></div>
+    </section>
+
+    <!-- 현황 -->
+    <section data-panel="status" id="panel-status">
+      <div class="stats">
+        <div class="card stat"><div class="k">접속 피클</div><div class="v" id="stPeople">0<small>명</small></div></div>
+        <div class="card stat"><div class="k">가동 파트</div><div class="v" id="stZones">0<small>/4</small></div></div>
+        <div class="card stat"><div class="k">여유 자리</div><div class="v" id="stFree">0<small>석</small></div></div>
+        <div class="card stat"><div class="k">메모</div><div class="v" id="stNotes">0<small>개</small></div></div>
+      </div>
+      <div class="card bars" id="zoneBars"></div>
+      <div class="sec-head" style="padding-top:22px"><div><h3>담당자 현황</h3><p>탭하면 자리와 최근 기록을 볼 수 있어요</p></div><span class="count" id="statusCount">0명</span></div>
+      <div class="card list" id="peopleList"></div>
+    </section>
+
+    <!-- 메모 -->
+    <section data-panel="memo" id="panel-memo">
+      <div class="sec-head"><div><h3>비서실 메모</h3><p>한 줄이면 충분해요. 모두에게 실시간으로 보입니다.</p></div></div>
+      <div class="card compose">
+        <div class="who" id="composeWho">게스트로 남기는 중</div>
+        <textarea id="memoInput" maxlength="200" placeholder="예: 회의 10시 세팅 완료, 지휘실에서 대기 중"></textarea>
+        <div class="row2">
+          <span class="hint">Enter로 남기기 · Shift+Enter 줄바꿈</span>
+          <button class="btn primary" id="memoSend" style="padding:9px 16px">남기기</button>
+        </div>
+      </div>
+      <div class="card" id="memoList"></div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    사랑 오피스 · 사랑님이 쓰는 공개 공유 비서실<br>
+    Google Sheets 실시간 동기화 · 누구나 읽고 쓸 수 있는 공간입니다
+  </footer>
 </div>
 
-<div class="hint" id="hint">바닥의 빈 의자를 눌러 자리를 옮길 수 있어요 · 캐릭터를 눌러 상태 보기</div>
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <div class="sheet-head"><h3 id="sheetTitle">제목</h3><button class="xbtn" id="sheetClose" aria-label="닫기">✕</button></div>
+  <div class="sheet-body" id="sheetBody"></div>
+</div>
 <div class="toast" id="toast"></div>
-
-<!-- 입장 모달 -->
-<div class="modal" id="joinModal">
-  <div class="card">
-    <h3>비서실에 입장하기</h3>
-    <p>이름과 색을 고르면 이 회의실에 나만의 피클이 생깁니다. 자리는 언제든 바꿀 수 있어요.</p>
-    <label>이름</label>
-    <input type="text" id="joinName" maxlength="12" placeholder="예: 사랑, 지우, 민준">
-    <label>색상</label>
-    <div class="swatches" id="joinColors"></div>
-    <label>첫 자리</label>
-    <select id="joinSeat"></select>
-    <button class="go" id="joinGo">입장</button>
-    <button class="ghost" id="joinSalang">사랑(비서실장)으로 입장</button>
-  </div>
-</div>
-
-<!-- 초대/API 모달 -->
-<div class="modal" id="inviteModal">
-  <div class="card">
-    <h3>친구 피클 초대하기</h3>
-    <p>이 주소를 그대로 보내면 친구도 같은 비서실에 들어옵니다. 이름을 붙이면 바로 그 이름으로 입장해요.</p>
-    <label>초대 링크</label>
-    <div class="codebox" id="inviteUrl"></div>
-    <label>다른 피클이 읽고 쓰는 방법 (HTTP)</label>
-    <div class="codebox" id="apiBox"></div>
-    <p style="margin-top:12px">비서실의 상태와 메모는 공개 저장소(Google 시트)에 기록됩니다. 누구나 읽고 쓸 수 있는 공유 비서실이라는 점만 기억해 주세요.</p>
-    <button class="ghost" id="inviteClose">닫기</button>
-  </div>
-</div>
 
 <script>
 window.__pickleErrors = [];
 window.addEventListener('error', e => { try { window.__pickleErrors.push(String(e.message) + ' @' + (e.filename || '').split('/').pop() + ':' + e.lineno); } catch (_) {} });
 window.addEventListener('unhandledrejection', e => { try { window.__pickleErrors.push('rejection: ' + String(e.reason)); } catch (_) {} });
-(() => {
+(function(){
 'use strict';
 
 /* ============================================================
-   0. 설정 · 상태
+   0. 설정
    ============================================================ */
 const API = {
   form: 'https://docs.google.com/forms/d/e/1FAIpQLSfAngwcMDbUBXAYCDfrVYWpi_E1NdLGQABGufZbyKNfLSV40Q/formResponse',
@@ -220,1390 +444,697 @@ const API = {
   sheet: '1euCEd7V1PPftJFtW9NsZpsAOEJOdbF7C2cUFC8PstZA',
   tab: '설문지 응답 시트1'
 };
-
-const ROOM = { w: 15, d: 11, wall: 3.15 };
-const COLORS = ['#a78bfa','#7dd3fc','#f9a8d4','#86efac','#fcd34d','#fb923c','#93c5fd','#f472b6'];
+const COLORS = ['#8B5CF6','#38BDF8','#F472B6','#34D399','#FBBF24','#FB7185','#60A5FA','#A3E635'];
 const ME_KEY = 'pickle-office-me-v1';
 
+const ZONES = [
+  { id:'meeting', name:'대회의실', en:'Meeting Room', desc:'6인 원목 테이블 · 유리 파티션', x:7.5,  y:41 },
+  { id:'desk',    name:'지휘실',   en:'Command Desk', desc:'비서실장 데스크 · 단독 집무', x:46.5, y:44 },
+  { id:'studio',  name:'작업실',   en:'Studio',       desc:'워크스테이션 3석 · 집중 작업', x:31,   y:75 },
+  { id:'lounge',  name:'라운지',   en:'Lounge',       desc:'곡선 소파 · 티타임',           x:76,   y:67 }
+];
+
+/* 좌표는 office-bg.png(1400×875) 위의 백분율 */
 const SEATS = [
-  {id:'conf-head', zone:'회의실', label:'회장석',      x:12.35, y:5.50},
-  {id:'conf-1',    zone:'회의실', label:'회의석 1',    x:7.45,  y:4.05},
-  {id:'conf-2',    zone:'회의실', label:'회의석 2',    x:8.95,  y:4.05},
-  {id:'conf-3',    zone:'회의실', label:'회의석 3',    x:10.30, y:4.05},
-  {id:'conf-4',    zone:'회의실', label:'회의석 4',    x:7.80,  y:6.95},
-  {id:'conf-5',    zone:'회의실', label:'회의석 5',    x:8.95,  y:6.95},
-  {id:'conf-6',    zone:'회의실', label:'회의석 6',    x:10.45, y:6.95},
-  {id:'work-1',    zone:'작업실', label:'워크스테이션 A', x:2.15,  y:3.25},
-  {id:'work-2',    zone:'작업실', label:'워크스테이션 B', x:3.55,  y:3.25},
-  {id:'work-3',    zone:'작업실', label:'워크스테이션 C', x:4.95,  y:3.25},
-  {id:'bar-1',     zone:'라운지', label:'에스프레소 바', x:2.05,  y:7.55},
-  {id:'bar-2',     zone:'라운지', label:'바 스툴',       x:3.25,  y:7.55},
-  {id:'lounge-1',  zone:'라운지', label:'라운지 소파',   x:2.30,  y:9.30},
-  {id:'lounge-2',  zone:'라운지', label:'라운지 체어',   x:3.80,  y:9.30},
-  {id:'core-1',    zone:'서버실', label:'AI 코어 랙',    x:13.05, y:8.60},
-  {id:'core-2',    zone:'서버실', label:'서버 콘솔',     x:11.85, y:9.55}
+  { id:'meet-1',  zone:'meeting', label:'회의석 1', x:17.5, y:20.0 },
+  { id:'meet-2',  zone:'meeting', label:'회의석 2', x:25.0, y:18.0 },
+  { id:'meet-3',  zone:'meeting', label:'회의석 3', x:30.5, y:21.5 },
+  { id:'meet-4',  zone:'meeting', label:'회의석 4', x:17.0, y:33.5 },
+  { id:'meet-5',  zone:'meeting', label:'회의석 5', x:25.5, y:35.0 },
+  { id:'meet-6',  zone:'meeting', label:'회의석 6', x:31.0, y:31.0 },
+  { id:'desk-1',  zone:'desk',    label:'지휘 데스크', x:55.0, y:24.5 },
+  { id:'work-1',  zone:'studio',  label:'워크스테이션 A', x:33.0, y:50.0 },
+  { id:'work-2',  zone:'studio',  label:'워크스테이션 B', x:44.0, y:60.5 },
+  { id:'work-3',  zone:'studio',  label:'워크스테이션 C', x:54.0, y:69.5 },
+  { id:'lounge-1',zone:'lounge',  label:'곡선 소파 L', x:81.5, y:50.0 },
+  { id:'lounge-2',zone:'lounge',  label:'곡선 소파 R', x:87.0, y:54.5 },
+  { id:'lounge-3',zone:'lounge',  label:'라운드 테이블', x:71.0, y:62.0 }
 ];
 const SEAT_MAP = Object.fromEntries(SEATS.map(s => [s.id, s]));
+const ZONE_MAP = Object.fromEntries(ZONES.map(z => [z.id, z]));
+
+/* 예전 버전의 자리 ID 호환 */
+const ALIAS = {
+  'conf-head':'desk-1',
+  'conf-1':'meet-1','conf-2':'meet-2','conf-3':'meet-3',
+  'conf-4':'meet-4','conf-5':'meet-5','conf-6':'meet-6',
+  'work-1':'work-1','work-2':'work-2','work-3':'work-3',
+  'bar-1':'lounge-2','bar-2':'lounge-3',
+  'core-1':'desk-1','core-2':'desk-1',
+  'lounge-1':'lounge-1','lounge-2':'lounge-2'
+};
 
 const state = {
-  agents: new Map(),   // id -> agent
-  notes: [],
-  me: null,
-  sel: null,
-  sync: 'init',
-  lastSync: 0,
-  clockTime: '',
-  drawList: []
+  agents: new Map(), notes: [], me: null,
+  motion: true, tab: 'office', sync: 'init', lastSync: 0,
+  mapSig: '', pendingSeat: null
 };
 
 /* ============================================================
-   1. 아이소메트릭 기하
+   1. 유틸
    ============================================================ */
-const canvas = document.getElementById('stage');
-const ctx = canvas.getContext('2d');
-let VW = 0, VH = 0, DPR = 1, S = 34, OX = 0, OY = 0;
-
-function project(x, y, z = 0) {
-  return [OX + (x - y) * S, OY + (x + y) * S * 0.5 - z * S];
-}
-function layout() {
-  VW = window.innerWidth; VH = window.innerHeight;
-  DPR = Math.min(window.devicePixelRatio || 1, 2);
-  canvas.width = Math.round(VW * DPR); canvas.height = Math.round(VH * DPR);
-  canvas.style.width = VW + 'px'; canvas.style.height = VH + 'px';
-  // 그릴 수 있는 자유 영역(좌·우 패널 제외)
-  const wide = VW > 980;
-  const free = wide
-    ? { x0: 292, x1: Math.max(292 + 260, VW - 348), y0: 66, y1: VH - 96 }
-    : { x0: 4, x1: VW - 4, y0: 92, y1: Math.max(240, VH - Math.min(VH * 0.40, 380) - 118) };
-  const fw = Math.max(120, free.x1 - free.x0), fh = Math.max(120, free.y1 - free.y0);
-  // S=40 기준 바운딩 박스
-  const ref = 40, pts = [];
-  [[0, 0], [ROOM.w, 0], [ROOM.w, ROOM.d], [0, ROOM.d]].forEach(([x, y]) => {
-    pts.push([(x - y) * ref, (x + y) * 0.5 * ref]);
-    pts.push([(x - y) * ref, (x + y) * 0.5 * ref - ROOM.wall * ref]);
-  });
-  const mnX = Math.min(...pts.map(p => p[0])), mxX = Math.max(...pts.map(p => p[0]));
-  const mnY = Math.min(...pts.map(p => p[1])), mxY = Math.max(...pts.map(p => p[1]));
-  const bw0 = mxX - mnX, bh0 = mxY - mnY;
-  S = Math.min(fw / bw0, fh / bh0) * ref * 0.97;
-  S = Math.max(14, Math.min(S, 78));
-  const k = S / ref;
-  OX = free.x0 + (fw - bw0 * k) / 2 - mnX * k;
-  OY = free.y0 + (fh - bh0 * k) / 2 - mnY * k;
-  buildScene();
-}
-
-/* ---------- 색 도구 ---------- */
-function hex2rgb(h) {
-  if (typeof h !== 'string') return [128, 128, 128];
-  if (h.slice(0, 3) === 'rgb') {
-    const m = h.match(/[\d.]+/g) || [];
-    return [Number(m[0]) || 0, Number(m[1]) || 0, Number(m[2]) || 0];
-  }
-  h = h.replace('#', '');
-  if (h.length === 3) h = h.split('').map(c => c + c).join('');
+const $ = id => document.getElementById(id);
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+function rand(n){ return Math.random().toString(36).slice(2, 2 + n); }
+function shade(hex, f){
+  let h = String(hex || '#8B5CF6').replace('#',''); if (h.length === 3) h = h.split('').map(c=>c+c).join('');
   const n = parseInt(h, 16);
-  if (Number.isNaN(n)) return [128, 128, 128];
-  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  if (isNaN(n)) return '#8B5CF6';
+  const r = Math.min(255, Math.round(((n>>16)&255) * f));
+  const g = Math.min(255, Math.round(((n>>8)&255) * f));
+  const b = Math.min(255, Math.round((n&255) * f));
+  return '#' + ((1<<24) + (r<<16) + (g<<8) + b).toString(16).slice(1);
 }
-function shade(h, k) {
-  const [r, g, b] = hex2rgb(h);
-  const f = v => Math.max(0, Math.min(255, Math.round(v * k)));
-  return `rgb(${f(r)},${f(g)},${f(b)})`;
+function inkOn(hex){
+  const n = parseInt(String(hex||'#8B5CF6').replace('#',''), 16);
+  if (isNaN(n)) return '#fff';
+  const r=(n>>16)&255, g=(n>>8)&255, b=n&255;
+  return (0.299*r + 0.587*g + 0.114*b) > 172 ? '#1F2937' : '#FFFFFF';
 }
-function rgba(h, a) { const [r, g, b] = hex2rgb(h); return `rgba(${r},${g},${b},${a})`; }
-function mix(a, b, t) {
-  const A = hex2rgb(a), B = hex2rgb(b);
-  return `rgb(${Math.round(A[0] + (B[0] - A[0]) * t)},${Math.round(A[1] + (B[1] - A[1]) * t)},${Math.round(A[2] + (B[2] - A[2]) * t)})`;
+function fmtTime(ts){
+  if (!ts) return '';
+  try { return new Date(ts).toLocaleTimeString('ko-KR', { hour:'2-digit', minute:'2-digit', hour12:false }); }
+  catch(_){ return ''; }
 }
-function rnd(i) { const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
-
-/* ---------- 기본 도형 ---------- */
-let TC = ctx;   // 현재 그리기 대상(배경 캐시 / 화면)
-function poly(pts, fill, stroke, lw) {
-  TC.beginPath();
-  TC.moveTo(pts[0][0], pts[0][1]);
-  for (let i = 1; i < pts.length; i++) TC.lineTo(pts[i][0], pts[i][1]);
-  TC.closePath();
-  if (fill) { TC.fillStyle = fill; TC.fill(); }
-  if (stroke) { TC.strokeStyle = stroke; TC.lineWidth = lw || 1; TC.stroke(); }
+function seatZone(seatId){ const s = SEAT_MAP[seatId]; return s ? s.zone : 'desk'; }
+function seatLabel(seatId){ const s = SEAT_MAP[seatId]; return s ? s.label : '이동 중'; }
+function normSeat(id){
+  const a = ALIAS[id] || id;
+  return SEAT_MAP[a] ? a : 'lounge-3';
 }
-/* 박스: x,y 평면 사각형, h 높이, z0 시작 높이 */
-function isoBox(x, y, w, d, h, z0, base, opt = {}) {
-  const top = shade(base, opt.topK || 1.16);
-  const rgt = shade(base, opt.rgtK || 0.74);
-  const lft = shade(base, opt.lftK || 0.46);
-  const A = project(x, y, z0 + h), B = project(x + w, y, z0 + h);
-  const Cc = project(x + w, y + d, z0 + h), D = project(x, y + d, z0 + h);
-  const B2 = project(x + w, y, z0), C2 = project(x + w, y + d, z0), D2 = project(x, y + d, z0);
-  if (h > 0.001) {
-    poly([B, Cc, C2, B2], rgt);            // +x 면
-    poly([D, Cc, C2, D2], lft);            // +y 면
-  }
-  poly([A, B, Cc, D], top);
-  if (opt.edge) {
-    poly([A, B, Cc, D], null, opt.edge, 1);
-    if (h > 0.001) { poly([B, Cc, C2, B2], null, opt.edge, 1); poly([D, Cc, C2, D2], null, opt.edge, 1); }
-  }
-  return {A, B, Cc, D};
+function zoneAgents(zid){
+  return [...state.agents.values()].filter(a => seatZone(a.seat) === zid)
+    .sort((a,b) => (a.id === 'salang' ? -1 : b.id === 'salang' ? 1 : (b.at||0) - (a.at||0)));
 }
-function groundShadow(x, y, w, d, alpha = 0.28) {
-  const A = project(x, y), B = project(x + w, y), Cc = project(x + w, y + d), D = project(x, y + d);
-  TC.save();
-  TC.filter = 'blur(12px)';
-  poly([A, B, Cc, D], `rgba(0,0,0,${alpha * 0.62})`);
-  TC.restore();
+function avatarHTML(a, cls){
+  const isMe = a.id === 'salang';
+  const c = a.color || '#8B5CF6';
+  const initial = isMe ? 'ㅅ' : String(a.name || '?').slice(0,1);
+  const style = `background:linear-gradient(160deg, ${esc(c)}, ${esc(shade(c, .74))}); color:${inkOn(c)}`;
+  return `<span class="ava${isMe ? ' s' : ''}${cls ? ' ' + cls : ''}" style="${style}">${esc(initial)}</span>`;
+}
+function toast(msg){
+  const t = $('toast'); t.textContent = msg; t.classList.add('on');
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('on'), 2000);
 }
 
 /* ============================================================
-   2. 배경(바닥·벽·도시·OLED 베젤) 캐시
+   2. 저장소 — Google Form 쓰기 / Sheet 읽기
    ============================================================ */
-const bg = document.createElement('canvas');
-const bgc = bg.getContext('2d');
-const city = document.createElement('canvas');
-const oled = document.createElement('canvas');
-let oledCtx = oled.getContext('2d');
-
-function buildCity() {
-  const W = 1400, H = 620;
-  city.width = W; city.height = H;
-  const c = city.getContext('2d');
-  // 밤하늘
-  const sky = c.createLinearGradient(0, 0, 0, H);
-  sky.addColorStop(0, '#0a1024'); sky.addColorStop(0.45, '#16204a'); sky.addColorStop(0.72, '#3b2b55'); sky.addColorStop(1, '#6b3f53');
-  c.fillStyle = sky; c.fillRect(0, 0, W, H);
-  // 별
-  for (let i = 0; i < 160; i++) {
-    const x = rnd(i * 3.1) * W, y = rnd(i * 7.7) * H * 0.55;
-    c.fillStyle = `rgba(255,255,255,${0.06 + rnd(i) * 0.28})`;
-    c.fillRect(x, y, 1.4, 1.4);
-  }
-  // 달
-  const mg = c.createRadialGradient(1120, 110, 4, 1120, 110, 140);
-  mg.addColorStop(0, 'rgba(255,246,220,.95)'); mg.addColorStop(0.14, 'rgba(255,240,205,.35)'); mg.addColorStop(1, 'rgba(255,240,205,0)');
-  c.fillStyle = mg; c.beginPath(); c.arc(1120, 110, 140, 0, 7); c.fill();
-  c.fillStyle = 'rgba(255,250,235,.92)'; c.beginPath(); c.arc(1120, 110, 22, 0, 7); c.fill();
-  // 스카이라인 3겹
-  const layers = [
-    {base: 618, hmax: 300, hmin: 90, tint: '#131a33', win: .10, seed: 11},
-    {base: 620, hmax: 210, hmin: 60, tint: '#0d132a', win: .16, seed: 42},
-    {base: 622, hmax: 120, hmin: 40, tint: '#080c1c', win: .22, seed: 91}
-  ];
-  layers.forEach((L, li) => {
-    let x = -40;
-    let k = L.seed;
-    while (x < W + 40) {
-      const bw = 34 + rnd(k++) * 88;
-      const bh = L.hmin + rnd(k++) * (L.hmax - L.hmin);
-      c.fillStyle = L.tint;
-      c.fillRect(x, L.base - bh, bw, bh);
-      if (li < 2) {
-        c.fillStyle = 'rgba(120,160,255,.10)';
-        c.fillRect(x, L.base - bh, bw, 2);
-      }
-      // 창문
-      for (let wy = L.base - bh + 12; wy < L.base - 8; wy += 13) {
-        for (let wx = x + 6; wx < x + bw - 6; wx += 11) {
-          if (rnd(k++) < L.win * 1.5) {
-            const warm = rnd(k++) > .45;
-            c.fillStyle = warm ? `rgba(255,214,140,${.35 + rnd(k++) * .5})` : `rgba(150,205,255,${.22 + rnd(k++) * .4})`;
-            c.fillRect(wx, wy, 4.5, 5.5);
-          }
-        }
-      }
-      // 옥상 표시등
-      if (rnd(k++) > .72) {
-        c.fillStyle = 'rgba(255,90,90,.85)';
-        c.fillRect(x + bw / 2, L.base - bh - 4, 2.5, 2.5);
-      }
-      x += bw + 6 + rnd(k++) * 10;
-    }
-  });
-  // 도시 헤이즈
-  const hz = c.createLinearGradient(0, H * 0.45, 0, H);
-  hz.addColorStop(0, 'rgba(90,120,200,0)'); hz.addColorStop(1, 'rgba(120,90,140,.38)');
-  c.fillStyle = hz; c.fillRect(0, 0, W, H);
+function postEvent(ev){
+  try{
+    const body = new URLSearchParams();
+    body.set('entry.' + API.entry, JSON.stringify(ev));
+    fetch(API.form, {
+      method:'POST', mode:'no-cors',
+      headers:{ 'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8' },
+      body: body.toString()
+    }).catch(() => {});
+  }catch(_){}
 }
 
-function buildBG() {
-  bg.width = Math.round(VW * DPR); bg.height = Math.round(VH * DPR);
-  bgc.setTransform(DPR, 0, 0, DPR, 0, 0);
-  bgc.clearRect(0, 0, VW, VH);
-  TC = bgc;
-
-  const W = ROOM.w, D = ROOM.d, H = ROOM.wall;
-
-  /* --- 바닥 --- */
-  const tile = 1.5;
-  for (let gy = 0; gy < D - 0.001; gy += tile) {
-    for (let gx = 0; gx < W - 0.001; gx += tile) {
-      const w = Math.min(tile, W - gx), d = Math.min(tile, D - gy);
-      const edgeX = gx < 0.92 || gy < 0.92 || gx + w > W - 0.92 || gy + d > D - 0.92;
-      const k = Math.floor(gx * 2) * 7 + Math.floor(gy * 2) * 13;
-      let col;
-      if (edgeX) {
-        col = mix('#4a3020', '#39251a', rnd(k) * 0.8);
-      } else {
-        const t = 0.5 + rnd(k) * 0.5;
-        col = mix('#ece5d5', '#d9cfba', t * 0.6);
-        if (rnd(k + 5) > 0.78) col = mix(col, '#cfc3ac', 0.35);
-      }
-      const A = project(gx, gy), B = project(gx + w, gy), Cc = project(gx + w, gy + d), Dd = project(gx, gy + d);
-      poly([A, B, Cc, Dd], col);
-      if (!edgeX) {
-        TC.strokeStyle = 'rgba(90,78,60,.10)'; TC.lineWidth = 1;
-        TC.beginPath(); TC.moveTo(A[0], A[1]); TC.lineTo(B[0], B[1]); TC.lineTo(Cc[0], Cc[1]); TC.stroke();
-      } else {
-        // 월넛 결
-        for (let i = 1; i < 3; i++) {
-          const yy = gy + d * i / 3;
-          const p0 = project(gx, yy), p1 = project(gx + w, yy);
-          TC.strokeStyle = 'rgba(0,0,0,.16)'; TC.lineWidth = 1;
-          TC.beginPath(); TC.moveTo(p0[0], p0[1]); TC.lineTo(p1[0], p1[1]); TC.stroke();
-        }
-      }
-    }
-  }
-  // 대리석 결
-  bgc.save();
-  for (let i = 0; i < 70; i++) {
-    const x0 = 1 + rnd(i * 2.3) * (W - 2), y0 = 1 + rnd(i * 5.1) * (D - 2);
-    const x1 = x0 + (rnd(i * 9.7) - 0.5) * 3.2, y1 = y0 + (rnd(i * 4.3) - 0.5) * 3.2;
-    const p0 = project(x0, y0), p1 = project(x1, y1);
-    bgc.strokeStyle = `rgba(120,104,82,${0.03 + rnd(i) * 0.05})`;
-    bgc.lineWidth = 0.6 + rnd(i * 3) * 1.1;
-    bgc.beginPath(); bgc.moveTo(p0[0], p0[1]);
-    bgc.quadraticCurveTo((p0[0] + p1[0]) / 2 + 10, (p0[1] + p1[1]) / 2 - 8, p1[0], p1[1]);
-    bgc.stroke();
-  }
-  bgc.restore();
-  // 바닥 반사(유리창 쪽 광)
-  {
-    const p0 = project(0.9, 0.9), p1 = project(W - 0.9, D - 0.9);
-    const g = bgc.createLinearGradient(p0[0], p0[1], p1[0], p1[1]);
-    g.addColorStop(0, 'rgba(150,190,255,.10)'); g.addColorStop(.45, 'rgba(255,255,255,.02)'); g.addColorStop(1, 'rgba(167,139,250,.09)');
-    poly([project(0.85, 0.85), project(W - 0.85, 0.85), project(W - 0.85, D - 0.85), project(0.85, D - 0.85)], g);
-  }
-
-  /* --- 벽 (y=0) : 다크 월넛 + OLED 베젤 --- */
-  {
-    const A = project(0, 0, 0), B = project(W, 0, 0), B2 = project(W, 0, H), A2 = project(0, 0, H);
-    const g = bgc.createLinearGradient(0, A2[1], 0, A[1]);
-    g.addColorStop(0, '#2a1b13'); g.addColorStop(.35, '#1e1410'); g.addColorStop(1, '#120c0a');
-    poly([A, B, B2, A2], g);
-    // 월넛 세로 패널
-    bgc.save();
-    for (let x = 0; x < W; x += 0.9) {
-      const p0 = project(x, 0, 0), p1 = project(x, 0, H);
-      bgc.strokeStyle = 'rgba(0,0,0,.35)'; bgc.lineWidth = 1;
-      bgc.beginPath(); bgc.moveTo(p0[0], p0[1]); bgc.lineTo(p1[0], p1[1]); bgc.stroke();
-      bgc.strokeStyle = 'rgba(255,220,180,.045)';
-      bgc.beginPath(); bgc.moveTo(p0[0] + 1.5, p0[1]); bgc.lineTo(p1[0] + 1.5, p1[1]); bgc.stroke();
-    }
-    bgc.restore();
-    // 코브 조명
-    const c0 = project(0, 0, H - 0.16), c1 = project(W, 0, H - 0.16);
-    const cg = bgc.createLinearGradient(c0[0], c0[1], c1[0], c1[1]);
-    cg.addColorStop(0, 'rgba(255,214,150,.15)'); cg.addColorStop(.5, 'rgba(255,226,175,.85)'); cg.addColorStop(1, 'rgba(255,214,150,.15)');
-    bgc.strokeStyle = cg; bgc.lineWidth = 2.4;
-    bgc.beginPath(); bgc.moveTo(c0[0], c0[1]); bgc.lineTo(c1[0], c1[1]); bgc.stroke();
-    // OLED 베젤
-    const bx = 2.55, bw = 9.9, bz0 = 0.52, bz1 = 2.68;
-    const quad = [project(bx, 0, bz0), project(bx + bw, 0, bz0), project(bx + bw, 0, bz1), project(bx, 0, bz1)];
-    poly(quad, '#07080c', 'rgba(216,189,138,.45)', 1.6);
-    // 하단 미디어 콘솔
-    isoBox(bx - 0.1, 0.02, bw + 0.2, 0.42, 0.52, 0, '#1b1512', {topK: 1.3});
-    // 월 아트 (골드 프레임)
-    const ax0 = 13.15, ax1 = 14.75, az0 = 1.35, az1 = 2.55;
-    const art = [project(ax0, 0, az0), project(ax1, 0, az0), project(ax1, 0, az1), project(ax0, 0, az1)];
-    poly(art, '#0d0b0c', 'rgba(216,189,138,.75)', 2.2);
-    const inner = [project(ax0 + .09, 0, az0 + .09), project(ax1 - .09, 0, az0 + .09), project(ax1 - .09, 0, az1 - .09), project(ax0 + .09, 0, az1 - .09)];
-    const ag = bgc.createLinearGradient(art[0][0], art[0][1], art[2][0], art[2][1]);
-    ag.addColorStop(0, '#241a2e'); ag.addColorStop(.45, '#4b3550'); ag.addColorStop(.7, '#2a2036'); ag.addColorStop(1, '#6b4a3a');
-    poly(inner, ag);
-    for (let i = 0; i < 5; i++) {
-      const y0 = az0 + .25 + i * .22;
-      const p0 = project(ax0 + .2, 0, y0), p1 = project(ax1 - .25, 0, y0 + .1);
-      bgc.strokeStyle = `rgba(255,225,190,${.07 + rnd(i) * .12})`; bgc.lineWidth = 1.4;
-      bgc.beginPath(); bgc.moveTo(p0[0], p0[1]); bgc.lineTo(p1[0], p1[1]); bgc.stroke();
-    }
-  }
-
-  /* --- 벽 (x=0) : 통유리 시티뷰 --- */
-  {
-    const A = project(0, 0, 0), B = project(0, D, 0), B2 = project(0, D, H), A2 = project(0, 0, H);
-    // 창틀
-    poly([A, B, B2, A2], '#0d0a09');
-    // 유리(도시)
-    bgc.save();
-    bgc.transform(-S, S * 0.5, 0, S, OX, OY - H * S);
-    bgc.globalAlpha = 0.96;
-    bgc.drawImage(city, 0.06, 0.16, D - 0.12, H - 0.5);
-    bgc.restore();
-    // 유리 반사
-    const gg = bgc.createLinearGradient(A2[0], A2[1], B2[0], B2[1]);
-    gg.addColorStop(0, 'rgba(255,255,255,.10)'); gg.addColorStop(.3, 'rgba(255,255,255,.01)');
-    gg.addColorStop(.55, 'rgba(190,210,255,.09)'); gg.addColorStop(.75, 'rgba(255,255,255,.02)'); gg.addColorStop(1, 'rgba(255,255,255,.07)');
-    poly([A2, B2, B, A], gg);
-    // 멀리언(창대)
-    for (let y = 0; y <= D + 0.001; y += D / 6) {
-      const p0 = project(0, y, 0), p1 = project(0, y, H);
-      bgc.strokeStyle = 'rgba(10,8,7,.85)'; bgc.lineWidth = Math.max(2, S * 0.045);
-      bgc.beginPath(); bgc.moveTo(p0[0], p0[1]); bgc.lineTo(p1[0], p1[1]); bgc.stroke();
-    }
-    // 하단 창틀
-    const s0 = project(0, 0, 0.12), s1 = project(0, D, 0.12);
-    bgc.strokeStyle = '#241812'; bgc.lineWidth = Math.max(3, S * 0.06);
-    bgc.beginPath(); bgc.moveTo(s0[0], s0[1]); bgc.lineTo(s1[0], s1[1]); bgc.stroke();
-  }
-
-  // 벽-바닥 경계 그림자
-  {
-    const a = project(0, 0, 0), b = project(W, 0, 0);
-    const g = bgc.createLinearGradient(0, a[1], 0, a[1] + S * 0.9);
-    g.addColorStop(0, 'rgba(0,0,0,.55)'); g.addColorStop(1, 'rgba(0,0,0,0)');
-    bgc.fillStyle = g;
-    bgc.beginPath();
-    const p1 = project(W, 0.9), p2 = project(0, 0.9);
-    bgc.moveTo(a[0], a[1]); bgc.lineTo(b[0], b[1]);
-    bgc.lineTo(p1[0], p1[1]); bgc.lineTo(p2[0], p2[1]);
-    bgc.closePath(); bgc.fill();
-  }
-  TC = ctx;
-}
-
-/* ============================================================
-   3. 가구 아이템 (깊이 정렬)
-   ============================================================ */
-function buildItems() {
-  const items = [];
-  const add = (depth, fn) => items.push({ depth, fn });
-
-  /* --- 바닥 엠블럼(ㅅ) --- */
-  add(-1, () => {
-    const cx = 10.35, cy = 9.55;
-    const p = project(cx, cy, 0);
-    const rx = S * 1.05, ry = S * 0.525;
-    const ring = ctx.createRadialGradient(p[0], p[1], rx * 0.2, p[0], p[1], rx);
-    ring.addColorStop(0, 'rgba(167,139,250,.16)');
-    ring.addColorStop(.75, 'rgba(167,139,250,.05)');
-    ring.addColorStop(1, 'rgba(167,139,250,0)');
-    ctx.fillStyle = ring;
-    ctx.beginPath(); ctx.ellipse(p[0], p[1], rx, ry, 0, 0, 7); ctx.fill();
-    ctx.strokeStyle = 'rgba(216,189,138,.38)'; ctx.lineWidth = 1.6;
-    ctx.beginPath(); ctx.ellipse(p[0], p[1], rx * 0.82, ry * 0.82, 0, 0, 7); ctx.stroke();
-    ctx.strokeStyle = 'rgba(216,189,138,.20)'; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.ellipse(p[0], p[1], rx * 0.66, ry * 0.66, 0, 0, 7); ctx.stroke();
-    // ㅅ
-    ctx.strokeStyle = 'rgba(196,181,253,.55)'; ctx.lineWidth = Math.max(3, S * 0.07); ctx.lineCap = 'round';
-    ctx.beginPath();
-    ctx.moveTo(p[0] - S * 0.3, p[1] + S * 0.22);
-    ctx.lineTo(p[0], p[1] - S * 0.26);
-    ctx.lineTo(p[0] + S * 0.3, p[1] + S * 0.22);
-    ctx.stroke();
-  });
-
-  /* --- 라운지 러그 --- */
-  add(100, () => {
-    const A = project(1.0, 8.15), B = project(4.75, 8.15), Cc = project(4.75, 10.6), D = project(1.0, 10.6);
-    poly([A, B, Cc, D], 'rgba(38,22,34,.62)', 'rgba(216,189,138,.20)', 1.2);
-    const A2 = project(1.12, 8.27), B2 = project(4.63, 8.27), C2 = project(4.63, 10.48), D2 = project(1.12, 10.48);
-    poly([A2, B2, C2, D2], 'rgba(96,52,76,.28)');
-  });
-
-  /* --- 회의 테이블 --- */
-  const TX = 5.95, TY = 4.35, TW = 6.0, TD = 2.35;
-  add(14.6, () => {
-    // 그림자
-    TC.save(); TC.filter = 'blur(14px)';
-    poly([project(TX - .1, TY - .1), project(TX + TW + .15, TY - .1), project(TX + TW + .15, TY + TD + .15), project(TX - .1, TY + TD + .15)], 'rgba(0,0,0,.32)');
-    TC.restore();
-    // 크롬 베이스
-    isoBox(TX + 0.55, TY + 0.65, 0.5, 0.5, 0.68, 0, '#8b8f99', {topK: 1.4});
-    isoBox(TX + TW - 1.05, TY + 0.65, 0.5, 0.5, 0.68, 0, '#8b8f99', {topK: 1.4});
-    isoBox(TX + 1.1, TY + 0.95, TW - 2.2, TD - 1.9, 0.66, 0, '#5d6068');
-    // 상판(월넛)
-    isoBox(TX, TY, TW, TD, 0.16, 0.66, '#3d271b', {topK: 1.25});
-    // 대리석 인레이 (중앙 스트립)
-    isoBox(TX + 1.35, TY + 0.78, TW - 2.7, TD - 1.56, 0.02, 0.822, '#cfc6b4', {topK: 1.03});
-    // 테이블 위 오브제: 노트북, 커피, 서류
-    isoBox(TX + 2.4, TY + 0.95, 0.52, 0.38, 0.03, 0.84, '#2c2f38', {topK: 1.5});
-    isoBox(TX + 3.0, TY + 0.95, 0.5, 0.38, 0.02, 0.86, '#1d2026', {topK: 1.2});
-    isoBox(TX + 4.35, TY + 0.9, 0.28, 0.28, 0.001, 0.85, '#f2ede2');
-    isoBox(TX + 4.65, TY + 0.95, 0.12, 0.12, 0.09, 0.85, '#e8e2d6', {topK: 1.15});
-    isoBox(TX + 1.5, TY + 1.0, 0.35, 0.26, 0.012, 0.85, '#f6f2e9');
-  });
-
-  /* --- 회의 의자 6 + 회장석 --- */
-  const chair = (x, y, backSide, base = '#15161c') => {
-    // backSide: -1 이면 뒤쪽(y-)에 등받이
-    groundShadow(x - .32, y - .32, .64, .64, .38);
-    isoBox(x - .3, y - .3, .6, .6, .44, 0, base, {topK: 1.5, edge: 'rgba(0,0,0,.5)'});
-    if (backSide < 0) isoBox(x - .3, y - .42, .6, .14, .78, 0, base, {topK: 1.35});
-    else isoBox(x - .3, y + .28, .6, .14, .78, 0, base, {topK: 1.35});
-    // 팔걸이
-    isoBox(x - .42, y - .18, .1, .36, .1, .5, '#22242c', {topK: 1.4});
-    isoBox(x + .32, y - .18, .1, .36, .1, .5, '#22242c', {topK: 1.4});
-  };
-  [['conf-1', -1], ['conf-2', -1], ['conf-3', -1], ['conf-4', 1], ['conf-5', 1], ['conf-6', 1]].forEach(([id, b]) => {
-    const s = SEAT_MAP[id];
-    add(s.x + s.y, () => chair(s.x, s.y, b));
-  });
-  {
-    const s = SEAT_MAP['conf-head'];
-    add(s.x + s.y - 0.05, () => {
-      groundShadow(s.x - .36, s.y - .36, .74, .74, .45);
-      // 리클라이닝 회장 의자
-      isoBox(s.x - .34, s.y - .34, .7, .7, .5, 0, '#0f1015', {topK: 1.7, edge: 'rgba(216,189,138,.22)'});
-      isoBox(s.x + .3, s.y - .38, .16, .78, .96, 0, '#12131a', {topK: 1.5});
-      isoBox(s.x - .5, s.y - .2, .1, .42, .12, .56, '#2a2118', {topK: 1.5});
-      isoBox(s.x + .3, s.y - .2, .1, .42, .12, .56, '#2a2118', {topK: 1.5});
-    });
-  }
-
-  /* --- 작업실 데스크 + 울트라와이드 모니터 + 맥 스튜디오 --- */
-  add(5.0, () => {
-    const dx = 1.15, dy = 2.0, dw = 5.0, dd = 0.95;
-    groundShadow(dx, dy, dw, dd, .45);
-    isoBox(dx, dy, dw, dd, 0.74, 0, '#2b1d15', {topK: 1.3});
-    isoBox(dx, dy + dd - .06, dw, .06, .74, 0, '#22170f');
-    // 모니터 2대 + 스탠드
-    const mon = (mx, mw) => {
-      isoBox(mx + mw / 2 - .07, dy + .24, .14, .14, .38, .74, '#33363e', {topK: 1.4});
-      isoBox(mx, dy + .1, mw, .08, .66, 1.02, '#0a0b0f', {topK: 1.15});
-      // 화면 발광
-      const p0 = project(mx + .05, dy + .1, 1.62), p1 = project(mx + mw - .05, dy + .1, 1.62);
-      const p2 = project(mx + mw - .05, dy + .1, 1.08), p3 = project(mx + .05, dy + .1, 1.08);
-      const g = ctx.createLinearGradient(p0[0], p0[1], p3[0], p3[1]);
-      g.addColorStop(0, 'rgba(130,190,255,.62)'); g.addColorStop(.5, 'rgba(167,139,250,.48)'); g.addColorStop(1, 'rgba(90,240,220,.34)');
-      poly([p0, p1, p2, p3], g);
-      // 코드 라인
-      for (let i = 0; i < 5; i++) {
-        const q0 = project(mx + .14, dy + .1, 1.56 - i * .1), q1 = project(mx + mw * (.4 + rnd(i + mx) * .5), dy + .1, 1.56 - i * .1);
-        ctx.strokeStyle = `rgba(255,255,255,${.22 + rnd(i) * .3})`; ctx.lineWidth = 1.3;
-        ctx.beginPath(); ctx.moveTo(q0[0], q0[1]); ctx.lineTo(q1[0], q1[1]); ctx.stroke();
-      }
-      // 화면 광 확산
-      ctx.save(); ctx.filter = 'blur(16px)';
-      poly([p0, p1, p2, p3], 'rgba(150,180,255,.22)');
-      ctx.restore();
-    };
-    mon(dx + .35, 1.65);
-    mon(dx + 2.75, 1.65);
-    // 맥 스튜디오
-    isoBox(dx + 4.55, dy + .35, .34, .3, .2, .74, '#a9adb6', {topK: 1.12});
-    // 키보드/마우스
-    isoBox(dx + .55, dy + .58, .85, .26, .02, .74, '#15171d', {topK: 1.4});
-    isoBox(dx + 3.0, dy + .58, .8, .26, .02, .74, '#15171d', {topK: 1.4});
-    isoBox(dx + 2.0, dy + .6, .15, .24, .025, .74, '#aeb2bb', {topK: 1.1});
-  });
-  // 작업 의자 3
-  [[2.15, 3.28], [3.55, 3.28], [4.95, 3.28]].forEach(([cx, cy]) => {
-    add(cx + cy, () => {
-      groundShadow(cx - .3, cy - .3, .6, .6, .35);
-      isoBox(cx - .28, cy - .28, .56, .56, .42, 0, '#191b22', {topK: 1.5});
-      isoBox(cx - .28, cy + .26, .56, .12, .72, 0, '#191b22', {topK: 1.35});
-    });
-  });
-
-  /* --- 에스프레소 바 --- */
-  add(8.6, () => {
-    const bx = 1.0, by = 6.62, bw = 3.7, bd = 0.72;
-    groundShadow(bx, by, bw, bd, .5);
-    isoBox(bx, by, bw, bd, 1.02, 0, '#241a14', {topK: 1.25});
-    isoBox(bx, by, bw, .1, 1.02, 0, '#3b2a1e');
-    // 대리석 상판
-    isoBox(bx - .04, by - .04, bw + .08, bd + .08, .06, 1.02, '#e8e2d6', {topK: 1.05});
-    // 에스프레소 머신
-    isoBox(bx + .35, by + .16, .66, .42, .5, 1.08, '#b8bcc4', {topK: 1.3, edge: 'rgba(0,0,0,.4)'});
-    isoBox(bx + .42, by + .12, .5, .1, .1, 1.58, '#8d929c', {topK: 1.4});
-    ctx.fillStyle = 'rgba(255,196,110,.85)';
-    for (let i = 0; i < 3; i++) { const p = project(bx + .5 + i * .16, by + .2, 1.28); ctx.beginPath(); ctx.arc(p[0], p[1], 1.6, 0, 7); ctx.fill(); }
-    // 컵들
-    for (let i = 0; i < 4; i++) {
-      const cx = bx + 1.55 + i * .26;
-      isoBox(cx, by + .26, .13, .13, .12, 1.08, '#f4efe6', {topK: 1.1});
-    }
-    // 병 정렬
-    for (let i = 0; i < 3; i++) {
-      const px = bx + 2.75 + i * .24;
-      isoBox(px, by + .2, .12, .12, .42, 1.08, i === 0 ? '#5b3a1e' : i === 1 ? '#2f4030' : '#3a2430', {topK: 1.35});
-    }
-    // 스툴 2
-    [[2.05, 7.58], [3.25, 7.58]].forEach(([sx, sy]) => {
-      groundShadow(sx - .26, sy - .26, .52, .52, .4);
-      isoBox(sx - .03, sy - .03, .06, .06, .62, 0, '#3a3d45');
-      isoBox(sx - .25, sy - .25, .5, .5, .12, .62, '#1d1a18', {topK: 1.5});
-    });
-  });
-
-  /* --- 라운지 소파 / 체어 / 사이드 테이블 / 램프 --- */
-  add(11.2, () => {
-    // 소파
-    const sx = 1.25, sy = 9.55, sw = 3.0, sd = 1.0;
-    groundShadow(sx, sy, sw, sd, .45);
-    isoBox(sx, sy, sw, sd, .42, 0, '#20222b', {topK: 1.45});
-    isoBox(sx, sy + sd - .18, sw, .18, .78, 0, '#1a1c24', {topK: 1.35});
-    isoBox(sx, sy, .18, sd, .6, 0, '#22242e', {topK: 1.3});
-    isoBox(sx + sw - .18, sy, .18, sd, .6, 0, '#22242e', {topK: 1.3});
-    // 쿠션
-    isoBox(sx + .35, sy + .1, .6, .55, .18, .42, '#3a2b3f', {topK: 1.4});
-    isoBox(sx + 1.9, sy + .1, .6, .55, .18, .42, '#2f2b3d', {topK: 1.4});
-    // 사이드 테이블 + 커피
-    isoBox(sx + 3.25, sy + .25, .55, .55, .42, 0, '#2a1d15', {topK: 1.3});
-    isoBox(sx + 3.4, sy + .4, .14, .14, .1, .42, '#efe9dd');
-    // 플로어 램프
-    isoBox(sx + 4.05, sy + .05, .07, .07, 1.55, 0, '#4a4e58');
-    const lp = project(sx + 4.08, sy + .08, 1.62);
-    const lg = ctx.createRadialGradient(lp[0], lp[1], 2, lp[0], lp[1], S * .95);
-    lg.addColorStop(0, 'rgba(255,214,150,.55)'); lg.addColorStop(1, 'rgba(255,214,150,0)');
-    ctx.fillStyle = lg; ctx.beginPath(); ctx.arc(lp[0], lp[1], S * .95, 0, 7); ctx.fill();
-    ctx.fillStyle = 'rgba(255,240,205,.95)'; ctx.beginPath(); ctx.arc(lp[0], lp[1], 3.2, 0, 7); ctx.fill();
-    // 라운지 체어
-    groundShadow(3.55, 9.0, .6, .6, .35);
-    isoBox(3.6, 8.95, .58, .58, .42, 0, '#23202a', {topK: 1.45});
-  });
-
-  /* --- 서버 / AI 코어 랙 --- */
-  add(13.6, () => {
-    const rx = 12.55, ry = 7.75, rw = .95, rd = .85;
-    groundShadow(rx, ry, rw, rd, .55);
-    isoBox(rx, ry, rw, rd, 2.15, 0, '#0e1016', {topK: 1.5, edge: 'rgba(110,231,183,.18)'});
-    // 유닛 라인 + LED (앞면 = +y)
-    for (let i = 0; i < 9; i++) {
-      const z = 0.22 + i * 0.21;
-      const p0 = project(rx + .05, ry + rd, z), p1 = project(rx + rw - .05, ry + rd, z);
-      ctx.strokeStyle = 'rgba(255,255,255,.07)'; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(p0[0], p0[1]); ctx.lineTo(p1[0], p1[1]); ctx.stroke();
-      for (let k = 0; k < 5; k++) {
-        const lp = project(rx + .1 + k * .17, ry + rd, z + .06);
-        const on = rnd(i * 7 + k * 3) > .35;
-        ctx.fillStyle = on ? (rnd(i + k) > .5 ? 'rgba(110,231,183,.9)' : 'rgba(120,180,255,.9)') : 'rgba(255,255,255,.10)';
-        ctx.beginPath(); ctx.arc(lp[0], lp[1], 1.5, 0, 7); ctx.fill();
-      }
-    }
-    // 랙 상단 글로우
-    const gp = project(rx + rw / 2, ry + rd / 2, 2.2);
-    const gg = ctx.createRadialGradient(gp[0], gp[1], 2, gp[0], gp[1], S * .7);
-    gg.addColorStop(0, 'rgba(110,231,183,.32)'); gg.addColorStop(1, 'rgba(110,231,183,0)');
-    ctx.fillStyle = gg; ctx.beginPath(); ctx.arc(gp[0], gp[1], S * .7, 0, 7); ctx.fill();
-    // 서버 콘솔 데스크
-    isoBox(11.15, 9.35, 1.5, .62, .72, 0, '#1b1d24', {topK: 1.3});
-    isoBox(11.3, 9.42, .55, .06, .36, .72, '#0b0c10', {topK: 1.2});
-    const sp = [project(11.3, 9.44, .95), project(11.85, 9.44, .95), project(11.85, 9.44, .74), project(11.3, 9.44, .74)];
-    poly(sp, 'rgba(110,231,183,.35)');
-  });
-
-  /* --- 사이드보드 (우측 벽) --- */
-  add(14.4, () => {
-    const sx = 13.15, sy = 0.34, sw = 1.6, sd = 0.72;
-    groundShadow(sx, sy, sw, sd, .4);
-    isoBox(sx, sy, sw, sd, 0.72, 0.14, '#3a2519', {topK: 1.28, edge: 'rgba(0,0,0,.35)'});
-    // 놋쇠 다리
-    [[sx + .08, sy + .08], [sx + sw - .12, sy + .08], [sx + .08, sy + sd - .12], [sx + sw - .12, sy + sd - .12]].forEach(([lx, ly]) => {
-      isoBox(lx, ly, .05, .05, .14, 0, '#b08d55');
-    });
-    // 상판 오브제
-    isoBox(sx + .22, sy + .2, .3, .3, .26, .86, '#5d4a7a', {topK: 1.35});   // 도자기
-    isoBox(sx + 1.02, sy + .26, .34, .22, .04, .86, '#e8e2d6');             // 트레이
-    isoBox(sx + 1.06, sy + .3, .12, .12, .16, .86, '#cfc6b4');
-  });
-
-  /* --- 화분 --- */
-  const plant = (px, py, sc = 1) => {
-    groundShadow(px - .3 * sc, py - .3 * sc, .6 * sc, .6 * sc, .4);
-    isoBox(px - .26 * sc, py - .26 * sc, .52 * sc, .52 * sc, .48 * sc, 0, '#2a211c', {topK: 1.35});
-    const base = project(px, py, .48 * sc);
-    ctx.strokeStyle = 'rgba(70,110,80,.85)'; ctx.lineWidth = 2.2;
-    for (let i = 0; i < 7; i++) {
-      const a = -1.9 + i * 0.42;
-      const L = S * (0.34 + rnd(i + px) * 0.3) * sc;
-      ctx.beginPath(); ctx.moveTo(base[0], base[1]);
-      ctx.quadraticCurveTo(base[0] + Math.cos(a) * L * .6, base[1] + Math.sin(a) * L * .6, base[0] + Math.cos(a) * L, base[1] + Math.sin(a) * L * .8);
-      ctx.stroke();
-      ctx.fillStyle = `rgba(${60 + rnd(i) * 40},${120 + rnd(i) * 50},${80 + rnd(i) * 40},.85)`;
-      ctx.beginPath(); ctx.ellipse(base[0] + Math.cos(a) * L, base[1] + Math.sin(a) * L * .8, 5 * sc, 3 * sc, a, 0, 7); ctx.fill();
-    }
-  };
-  plant(0.75, 5.45, 1.15);
-  plant(14.35, 6.15, 1.0);
-  plant(0.7, 1.25, .95);
-  plant(14.2, 10.25, 1.1);
-
-  /* --- 펜던트 조명 (천장) --- */
-  for (let i = 0; i < 3; i++) {
-    const px = 7.1 + i * 1.9, py = 5.5;
-    add(px + py + 40, () => {
-      const p = project(px, py, 2.55);
-      const g = ctx.createRadialGradient(p[0], p[1], 1, p[0], p[1], S * 1.25);
-      g.addColorStop(0, 'rgba(255,226,175,.30)'); g.addColorStop(1, 'rgba(255,226,175,0)');
-      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p[0], p[1], S * 1.25, 0, 7); ctx.fill();
-      ctx.strokeStyle = 'rgba(216,189,138,.55)'; ctx.lineWidth = 1.4;
-      ctx.beginPath(); ctx.ellipse(p[0], p[1], S * .3, S * .15, 0, 0, 7); ctx.stroke();
-      ctx.fillStyle = 'rgba(255,244,220,.85)';
-      ctx.beginPath(); ctx.ellipse(p[0], p[1], S * .26, S * .12, 0, 0, 7); ctx.fill();
-    });
-  }
-
-  items.sort((a, b) => a.depth - b.depth);
-  return items;
-}
-
-let sceneItems = [];
-function buildScene() {
-  buildCity();
-  buildBG();
-  sceneItems = buildItems();
-  oled.width = 1180; oled.height = 250;
-  oledCtx = oled.getContext('2d');
-  drawOLED();
-}
-
-/* ============================================================
-   4. OLED 대시보드
-   ============================================================ */
-function drawOLED() {
-  const w = oled.width, h = oled.height, c = oledCtx;
-  c.clearRect(0, 0, w, h);
-  const g = c.createLinearGradient(0, 0, w, h);
-  g.addColorStop(0, '#050810'); g.addColorStop(.55, '#08101c'); g.addColorStop(1, '#0a0a18');
-  c.fillStyle = g; c.fillRect(0, 0, w, h);
-  // 그리드
-  c.strokeStyle = 'rgba(110,160,255,.06)'; c.lineWidth = 1;
-  for (let x = 0; x < w; x += 40) { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, h); c.stroke(); }
-  for (let y = 0; y < h; y += 40) { c.beginPath(); c.moveTo(0, y); c.lineTo(w, y); c.stroke(); }
-
-  const agents = [...state.agents.values()];
-  const notes = state.notes;
-  const now = new Date();
-  const hh = String(now.getHours()).padStart(2, '0'), mm = String(now.getMinutes()).padStart(2, '0');
-
-  // 좌: LIVE + 시계
-  c.fillStyle = 'rgba(110,231,183,.16)';
-  c.beginPath(); c.roundRect(28, 26, 74, 24, 12); c.fill();
-  c.fillStyle = '#6ee7b7'; c.font = '600 13px ' + FONT; c.textBaseline = 'middle';
-  c.fillText('● LIVE', 40, 39);
-  c.fillStyle = 'rgba(255,255,255,.45)'; c.font = '500 13px ' + FONT;
-  c.fillText('EXECUTIVE BRIEFING', 120, 39);
-  c.fillStyle = '#fff'; c.font = '700 62px ' + FONT;
-  c.fillText(hh + ':' + mm, 24, 104);
-  c.fillStyle = 'rgba(255,255,255,.4)'; c.font = '500 13px ' + FONT;
-  c.fillText('KST · ' + now.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' }), 30, 160);
-
-  // 중: 참석 현황
-  c.fillStyle = 'rgba(255,255,255,.35)'; c.font = '500 12px ' + FONT;
-  c.fillText('IN THE OFFICE', 390, 30);
-  c.fillStyle = '#a78bfa'; c.font = '700 52px ' + FONT;
-  c.fillText(String(agents.length), 388, 80);
-  c.fillStyle = 'rgba(255,255,255,.65)'; c.font = '500 18px ' + FONT;
-  c.fillText('명 참석', 388 + c.measureText(String(agents.length)).width + 12, 86);
-  // 존 분포
-  const zones = ['회의실', '작업실', '라운지', '서버실'];
-  const zc = zones.map(z => agents.filter(a => (SEAT_MAP[a.seat] || {}).zone === z).length);
-  const maxZ = Math.max(1, ...zc);
-  zones.forEach((z, i) => {
-    const y = 118 + i * 26;
-    c.fillStyle = 'rgba(255,255,255,.5)'; c.font = '500 12px ' + FONT;
-    c.fillText(z, 390, y);
-    c.fillStyle = 'rgba(255,255,255,.10)';
-    c.beginPath(); c.roundRect(450, y - 6, 170, 10, 5); c.fill();
-    const bg2 = c.createLinearGradient(450, 0, 620, 0);
-    bg2.addColorStop(0, '#7c4dff'); bg2.addColorStop(1, '#38bdf8');
-    c.fillStyle = bg2;
-    c.beginPath(); c.roundRect(450, y - 6, Math.max(6, 170 * zc[i] / maxZ), 10, 5); c.fill();
-    c.fillStyle = 'rgba(255,255,255,.75)'; c.font = '600 12px ' + FONT;
-    c.fillText(String(zc[i]), 632, y);
-  });
-
-  // 우: 최근 메모
-  c.fillStyle = 'rgba(255,255,255,.35)'; c.font = '500 12px ' + FONT;
-  c.fillText('LATEST MEMO', 700, 30);
-  const last = notes.slice(-4).reverse();
-  if (!last.length) {
-    c.fillStyle = 'rgba(255,255,255,.22)'; c.font = '500 14px ' + FONT;
-    c.fillText('아직 메모가 없습니다', 700, 70);
-  } else {
-    last.slice(0, 3).forEach((n, i) => {
-      const y = 62 + i * 40;
-      c.fillStyle = 'rgba(255,255,255,.85)'; c.font = '600 13px ' + FONT;
-      c.fillText(String(n.name || '피클').slice(0, 8), 700, y);
-      c.fillStyle = 'rgba(255,255,255,.45)'; c.font = '400 13px ' + FONT;
-      const t = String(n.text || '').replace(/\s+/g, ' ');
-      c.fillText(t.length > 34 ? t.slice(0, 34) + '…' : t, 760, y);
-    });
-  }
-
-  // 하단 티커
-  c.fillStyle = 'rgba(255,255,255,.05)'; c.fillRect(0, h - 34, w, 34);
-  c.fillStyle = 'rgba(216,189,138,.85)'; c.font = '500 12px ' + FONT;
-  const tick = 'PICKLE EXECUTIVE OFFICE  ·  합동 비서실  ·  회의실 / 작업실 / 라운지 / 서버실  ·  상태와 메모는 실시간으로 공유됩니다';
-  c.fillText(tick, 24, h - 17);
-  // 우측 연결 상태
-  c.fillStyle = state.sync === 'ok' ? 'rgba(110,231,183,.9)' : 'rgba(251,191,36,.9)';
-  c.font = '600 12px ' + FONT;
-  c.fillText(state.sync === 'ok' ? 'SYNC OK' : 'SYNC …', w - 108, h - 17);
-}
-
-/* ============================================================
-   5. 캐릭터(피클) 렌더링
-   ============================================================ */
-const FONT = "'Pretendard','Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',system-ui,sans-serif";
-
-function drawPickle(a, px, py, t) {
-  const sprK = VW < 700 ? 1.55 : 1;
-  const s = S * 0.052 * sprK;       // 기본 스케일
-  const H = 1.14;                   // m
-  const hpx = H * S;
-  const bob = Math.sin(t * 2.1 + (a._ph || 0)) * hpx * 0.035 + (a._hop || 0);
-  const baseY = py - bob;
-
-  // 그림자
-  const sh = ctx.createRadialGradient(px, py, 1, px, py, hpx * 0.36);
-  sh.addColorStop(0, 'rgba(0,0,0,.5)'); sh.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.fillStyle = sh;
-  ctx.beginPath(); ctx.ellipse(px, py, hpx * 0.34, hpx * 0.15, 0, 0, 7); ctx.fill();
-
-  // 선택 링
-  if (state.sel === a.id) {
-    ctx.strokeStyle = 'rgba(216,189,138,.85)'; ctx.lineWidth = 1.6;
-    ctx.beginPath(); ctx.ellipse(px, py, hpx * 0.42, hpx * 0.19, 0, 0, 7); ctx.stroke();
-  }
-
-  const col = a.color || '#a78bfa';
-  const grad = ctx.createLinearGradient(px, baseY - hpx, px, baseY);
-  grad.addColorStop(0, shade(col, 1.25));
-  grad.addColorStop(.55, col);
-  grad.addColorStop(1, shade(col, .72));
-
-  ctx.save();
-  ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-
-  if (a.id === 'salang' || a.shape === 'ㅅ') {
-    /* ㅅ 모양 피클 */
-    const w = hpx * 0.46;     // 반폭
-    const topY = baseY - hpx * 0.94;
-    const botY = baseY;
-    const lw = hpx * 0.235;
-    // 외곽선
-    ctx.strokeStyle = shade(col, .42); ctx.lineWidth = lw + 3.5;
-    ctx.beginPath();
-    ctx.moveTo(px - w, botY); ctx.lineTo(px, topY); ctx.lineTo(px + w, botY);
-    ctx.stroke();
-    // 몸통
-    ctx.strokeStyle = grad; ctx.lineWidth = lw;
-    ctx.beginPath();
-    ctx.moveTo(px - w, botY); ctx.lineTo(px, topY); ctx.lineTo(px + w, botY);
-    ctx.stroke();
-    // 하이라이트
-    ctx.strokeStyle = 'rgba(255,255,255,.30)'; ctx.lineWidth = lw * 0.28;
-    ctx.beginPath();
-    ctx.moveTo(px - w * .78, botY - hpx * .04); ctx.lineTo(px - w * .1, topY + hpx * .1);
-    ctx.stroke();
-    // 얼굴
-    const ey = topY + hpx * 0.30;
-    const ex = hpx * 0.155;
-    const blink = (Math.sin(t * 1.7 + (a._ph || 0)) > 0.985) ? 0.18 : 1;
-    const eyeR = hpx * 0.062;
-    // 눈
-    ctx.fillStyle = '#221336';
-    ctx.beginPath(); ctx.ellipse(px - ex, ey, eyeR, eyeR * 1.35 * blink, 0, 0, 7); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(px + ex, ey, eyeR, eyeR * 1.35 * blink, 0, 0, 7); ctx.fill();
-    if (blink > .5) {
-      ctx.fillStyle = 'rgba(255,255,255,.9)';
-      ctx.beginPath(); ctx.arc(px - ex + eyeR * .3, ey - eyeR * .45, eyeR * .3, 0, 7); ctx.fill();
-      ctx.beginPath(); ctx.arc(px + ex + eyeR * .3, ey - eyeR * .45, eyeR * .3, 0, 7); ctx.fill();
-    }
-    // 볼
-    ctx.fillStyle = 'rgba(255,150,200,.22)';
-    ctx.beginPath(); ctx.ellipse(px - ex - eyeR * 1.5, ey + eyeR * 1.6, eyeR * .9, eyeR * .55, 0, 0, 7); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(px + ex + eyeR * 1.5, ey + eyeR * 1.6, eyeR * .9, eyeR * .55, 0, 0, 7); ctx.fill();
-    // 입
-    ctx.strokeStyle = '#221336'; ctx.lineWidth = hpx * 0.028;
-    ctx.beginPath(); ctx.arc(px, ey + eyeR * 2.2, eyeR * .95, 0.25 * Math.PI, 0.75 * Math.PI); ctx.stroke();
-  } else {
-    /* 친구 피클: 둥근 캡슐 */
-    const bw = hpx * 0.34, bh = hpx * 0.52;
-    const topY = baseY - hpx * 0.94;
-    ctx.beginPath();
-    ctx.roundRect(px - bw, topY + hpx * 0.04, bw * 2, (baseY - (topY + hpx * 0.04)) * 0.98, bw * 0.9);
-    ctx.fillStyle = grad; ctx.fill();
-    ctx.strokeStyle = shade(col, .45); ctx.lineWidth = 2.6; ctx.stroke();
-    // 하이라이트
-    ctx.fillStyle = 'rgba(255,255,255,.28)';
-    ctx.beginPath(); ctx.ellipse(px - bw * .42, topY + hpx * .22, bw * .28, hpx * .12, -0.5, 0, 7); ctx.fill();
-    // 눈
-    const ey = topY + hpx * 0.38, ex = bw * 0.42, eyeR = hpx * 0.058;
-    const blink = (Math.sin(t * 1.5 + (a._ph || 0)) > 0.985) ? 0.18 : 1;
-    ctx.fillStyle = '#221336';
-    ctx.beginPath(); ctx.ellipse(px - ex, ey, eyeR, eyeR * 1.35 * blink, 0, 0, 7); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(px + ex, ey, eyeR, eyeR * 1.35 * blink, 0, 0, 7); ctx.fill();
-    if (blink > .5) {
-      ctx.fillStyle = 'rgba(255,255,255,.9)';
-      ctx.beginPath(); ctx.arc(px - ex + eyeR * .3, ey - eyeR * .45, eyeR * .3, 0, 7); ctx.fill();
-      ctx.beginPath(); ctx.arc(px + ex + eyeR * .3, ey - eyeR * .45, eyeR * .3, 0, 7); ctx.fill();
-    }
-    ctx.strokeStyle = '#221336'; ctx.lineWidth = hpx * 0.026;
-    ctx.beginPath(); ctx.arc(px, ey + eyeR * 2.4, eyeR * .9, 0.2 * Math.PI, 0.8 * Math.PI); ctx.stroke();
-    // 이니셜 배지
-    const ch = (a.name || '?').trim().slice(0, 1);
-    ctx.fillStyle = 'rgba(8,9,14,.8)';
-    ctx.beginPath(); ctx.arc(px + bw * .78, topY + hpx * .12, hpx * .085, 0, 7); ctx.fill();
-    ctx.fillStyle = '#fff'; ctx.font = `600 ${Math.max(8, hpx * 0.11)}px ${FONT}`;
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(ch, px + bw * .78, topY + hpx * .125);
-    ctx.textAlign = 'left';
-  }
-  ctx.restore();
-
-  // 이름표
-  const label = a.name || '피클';
-  ctx.font = `600 ${Math.max(9, Math.min(13, S * 0.2))}px ${FONT}`;
-  const tw = ctx.measureText(label).width;
-  const ly = py + hpx * 0.14;
-  ctx.fillStyle = 'rgba(6,7,12,.72)';
-  ctx.beginPath(); ctx.roundRect(px - tw / 2 - 7, ly, tw + 14, 17, 8); ctx.fill();
-  ctx.strokeStyle = rgba(col, .55); ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.roundRect(px - tw / 2 - 7, ly, tw + 14, 17, 8); ctx.stroke();
-  ctx.fillStyle = '#f0edf9'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText(label, px, ly + 9);
-  ctx.textAlign = 'left';
-
-  // 말풍선
-  if (a._bubble && a._bubble.until > performance.now()) {
-    const txt = a._bubble.text;
-    ctx.font = `500 ${Math.max(10, Math.min(14, S * 0.22))}px ${FONT}`;
-    const maxW = 210;
-    const words = txt.split('');
-    const lines = []; let cur = '';
-    words.forEach(ch2 => {
-      if (ctx.measureText(cur + ch2).width > maxW) { lines.push(cur); cur = ch2; }
-      else cur += ch2;
-    });
-    if (cur) lines.push(cur);
-    const bwid = Math.min(maxW, Math.max(...lines.map(l => ctx.measureText(l).width))) + 22;
-    const bhei = lines.length * 18 + 16;
-    const bx = px - bwid / 2, byy = baseY - hpx * 1.12 - bhei;
-    ctx.fillStyle = 'rgba(248,246,255,.96)';
-    ctx.beginPath(); ctx.roundRect(bx, byy, bwid, bhei, 11); ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(px - 6, byy + bhei); ctx.lineTo(px + 6, byy + bhei); ctx.lineTo(px, byy + bhei + 8);
-    ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#171226'; ctx.textBaseline = 'top'; ctx.textAlign = 'left';
-    lines.forEach((l, i) => ctx.fillText(l, bx + 11, byy + 8 + i * 18));
-  }
-}
-
-/* ============================================================
-   6. 프레임 렌더
-   ============================================================ */
-let t0 = performance.now();
-function frame(now) {
-  const t = (now - t0) / 1000;
-  TC = ctx;
-  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-  ctx.clearRect(0, 0, VW, VH);
-
-  // 배경
-  ctx.drawImage(bg, 0, 0, VW, VH);
-
-  // OLED 콘텐츠 (벽면 변환)
-  ctx.save();
-  ctx.transform(S, S * 0.5, 0, S, OX, OY - ROOM.wall * S);
-  ctx.globalAlpha = 0.98;
-  ctx.drawImage(oled, 2.6, ROOM.wall - 2.65, 9.8, 2.08);
-  ctx.restore();
-
-  // 깊이 정렬 아이템 + 캐릭터
-  const drawables = [];
-  sceneItems.forEach(it => drawables.push({ depth: it.depth, fn: it.fn }));
-  state.agents.forEach(a => {
-    const p = a._p || seatPos(a);
-    const px = project(p.x, p.y, 0);
-    drawables.push({ depth: p.x + p.y + 0.1, fn: () => drawPickle(a, px[0], px[1], t) });
-  });
-  drawables.sort((a, b) => a.depth - b.depth);
-  drawables.forEach(d => d.fn());
-
-  // 대기실 좌석 마커(빈 자리)
-  const taken = new Set([...state.agents.values()].map(a => a.seat));
-  SEATS.forEach(s => {
-    if (taken.has(s.id)) return;
-    const p = project(s.x, s.y, 0);
-    const pulse = 0.4 + 0.3 * Math.sin(t * 2 + s.x);
-    const gr = ctx.createRadialGradient(p[0], p[1], 1, p[0], p[1], S * 0.42);
-    gr.addColorStop(0, `rgba(216,189,138,${0.16 * pulse})`);
-    gr.addColorStop(1, 'rgba(216,189,138,0)');
-    ctx.fillStyle = gr;
-    ctx.beginPath(); ctx.ellipse(p[0], p[1], S * 0.42, S * 0.19, 0, 0, 7); ctx.fill();
-    ctx.strokeStyle = `rgba(216,189,138,${0.30 * pulse})`;
-    ctx.lineWidth = 1.1;
-    ctx.beginPath(); ctx.ellipse(p[0], p[1], S * 0.3, S * 0.135, 0, 0, 7); ctx.stroke();
-  });
-
-  // 부유 먼지
-  ctx.globalCompositeOperation = 'lighter';  for (let i = 0; i < 26; i++) {
-    const x = (rnd(i) * VW + t * (4 + rnd(i + 9) * 10)) % VW;
-    const y = (rnd(i + 3) * VH * 0.8 + Math.sin(t * 0.5 + i) * 20) % (VH * 0.9);
-    const a = 0.04 + rnd(i + 7) * 0.09;
-    ctx.fillStyle = `rgba(255,236,205,${a})`;
-    ctx.beginPath(); ctx.arc(x, y, 1.1, 0, 7); ctx.fill();
-  }
-  ctx.globalCompositeOperation = 'source-over';
-
-  // 상하 가장자리 비네트
-  const vg = ctx.createRadialGradient(VW * 0.5, VH * 0.48, Math.min(VW, VH) * 0.28, VW * 0.5, VH * 0.52, Math.max(VW, VH) * 0.75);
-  vg.addColorStop(0, 'rgba(3,4,8,0)'); vg.addColorStop(0.72, 'rgba(3,4,8,.22)'); vg.addColorStop(1, 'rgba(3,4,8,.55)');
-  ctx.fillStyle = vg; ctx.fillRect(0, 0, VW, VH);
-
-  requestAnimationFrame(frame);
-}
-
-/* ============================================================
-   7. 상태 → 화면
-   ============================================================ */
-function seatPos(a) {
-  const s = SEAT_MAP[a.seat];
-  if (s) return { x: s.x, y: s.y };
-  return { x: 8.9, y: 8.2 };
-}
-function ensureAgentMotion(a) {
-  const target = seatPos(a);
-  if (!a._p) a._p = { x: target.x, y: target.y };
-  a._q = target;
-  if (a._ph === undefined) a._ph = rnd(a.id.length * 7) * 6.28;
-}
-function tickMotion(dt) {
-  state.agents.forEach(a => {
-    ensureAgentMotion(a);
-    const dx = a._q.x - a._p.x, dy = a._q.y - a._p.y;
-    const dist = Math.hypot(dx, dy);
-    if (dist > 0.01) {
-      const k = Math.min(1, dt * 3.4);
-      a._p.x += dx * k; a._p.y += dy * k;
-      a._hop = Math.abs(Math.sin(performance.now() / 120)) * S * 0.06;
-    } else { a._hop = 0; }
-  });
-}
-
-function mergeAgents(list) {
-  const next = new Map();
-  list.forEach(a => {
-    const col = a.color || '#a78bfa';
-    const prev = state.agents.get(a.id);
-    const agent = Object.assign({}, prev || {}, a, { color: col });
-    if (prev) { agent._p = prev._p; agent._q = prev._q; agent._bubble = prev._bubble; agent._ph = prev._ph; }
-    ensureAgentMotion(agent);
-    next.set(a.id, agent);
-  });
-  // 사랑은 항상 상주
-  if (!next.has('salang') && !state.hideSalang) {
-    const sal = Object.assign({ id: 'salang', name: '사랑', kind: 'me', color: '#a78bfa', seat: 'conf-head', status: '비서실장 · 상주', memo: '회의실에서 대기 중' });
-    ensureAgentMotion(sal);
-    next.set('salang', sal);
-  }
-  state.agents = next;
-}
-
-/* ============================================================
-   8. 저장소 (Google Form 쓰기 / Sheet 읽기)
-   ============================================================ */
-function postEvent(ev) {
-  const body = new URLSearchParams();
-  body.set('entry.' + API.entry, JSON.stringify(ev));
-  fetch(API.form, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-    body: body.toString()
-  }).catch(() => {});
-}
-
-let cbSeq = 0, readTimer = null, polling = false;
-function readState() {
+let cbSeq = 0, polling = false;
+function readState(){
+  if (polling) return;
   polling = true;
   const name = '__office' + (++cbSeq);
-  const done = (err, rows) => {
-    if (name in window) delete window[name];
+  let settled = false;
+  const finish = (err, rows) => {
+    if (settled) return; settled = true;
+    try { delete window[name]; } catch(_) { window[name] = undefined; }
     polling = false;
     if (err) { setSync('err'); return; }
-    if (rows && rows.length >= 0) {
-      state.rows = rows;
-      applyRows(rows);
-      setSync('ok');
-      state.lastSync = Date.now();
-      renderPanels();
-    }
+    applyRows(rows || []);
+    setSync('ok'); state.lastSync = Date.now(); renderAll();
   };
   window[name] = res => {
     try {
       const rows = (res.table.rows || []).map(r => r.c);
-      done(null, rows);
-    } catch (e) { done(e); }
+      finish(null, rows);
+    } catch(e){ finish(e); }
   };
   const url = `https://docs.google.com/spreadsheets/d/${API.sheet}/gviz/tq?sheet=${encodeURIComponent(API.tab)}` +
     `&tqx=out:json;responseHandler:${name}&_=${Date.now()}`;
   const sc = document.createElement('script');
   sc.src = url;
-  sc.onerror = () => done(new Error('load'));
+  sc.onerror = () => finish(new Error('load'));
   document.head.appendChild(sc);
-  const timeout = setTimeout(() => { if (name in window) done(new Error('timeout')); sc.remove(); }, 12000);
-  // 스크립트가 실행되면 timeout은 무해
-  window[name + '_t'] = timeout;
+  setTimeout(() => { finish(new Error('timeout')); sc.remove(); }, 12000);
 }
 
-function applyRows(rows) {
+function applyRows(rows){
   const agents = new Map();
   const notes = [];
   rows.forEach(c => {
     if (!c || !c[1]) return;
     const raw = c[1].v;
     if (typeof raw !== 'string' || raw.trim().charAt(0) !== '{') return;
-    let e; try { e = JSON.parse(raw); } catch (_) { return; }
+    let e; try { e = JSON.parse(raw); } catch(_) { return; }
     if (!e || !e.op) return;
     const at = Number(e.at || e.ts || 0) || 0;
-    if (e.op === 'note') {
-      notes.push({ id: e.id, name: e.name, color: e.color, text: e.text, at, seat: e.seat });
-    } else if (e.op === 'leave') {
+    if (e.op === 'note'){
+      notes.push({ id:e.id, name:e.name || '피클', color:e.color, text:e.text, at, seat:e.seat });
+    } else if (e.op === 'leave'){
       agents.delete(e.id);
     } else {
       const prev = agents.get(e.id) || {};
       agents.set(e.id, {
         id: e.id,
         name: e.name || prev.name || '피클',
-        color: e.color || prev.color,
+        color: e.color || prev.color || '#8B5CF6',
         kind: e.kind || prev.kind || 'friend',
-        seat: e.seat || prev.seat || 'lounge-1',
+        seat: normSeat(e.seat || prev.seat),
         status: e.status !== undefined ? e.status : (prev.status || ''),
         memo: e.memo !== undefined ? e.memo : (prev.memo || ''),
         at
       });
     }
   });
-  state.notes = notes.slice(-60);
+  state.notes = notes.slice(-80);
   mergeAgents([...agents.values()]);
 }
 
-function setSync(s) {
+function mergeAgents(list){
+  const next = new Map();
+  list.forEach(a => next.set(a.id, Object.assign({}, a, { seat: normSeat(a.seat) })));
+  if (!next.has('salang')){
+    next.set('salang', { id:'salang', name:'사랑', kind:'me', color:'#8B5CF6', seat:'desk-1',
+      status:'비서실장 · 상주', memo:'지휘실에서 대기 중' });
+  }
+  if (state.me && !next.has(state.me.id)){
+    next.set(state.me.id, Object.assign({}, state.me, { at: Date.now() }));
+  }
+  state.agents = next;
+  if (state.me && next.has(state.me.id)){
+    const a = next.get(state.me.id);
+    state.me.seat = a.seat;
+    if (a.status !== undefined) state.me.status = a.status;
+    if (a.memo !== undefined) state.me.memo = a.memo;
+  }
+}
+
+function setSync(s){
   state.sync = s;
-  const dot = document.getElementById('syncDot');
-  const txt = document.getElementById('syncText');
-  dot.className = 'dot' + (s === 'ok' ? '' : s === 'init' ? ' warn' : ' err');
-  txt.textContent = s === 'ok' ? '실시간 연결됨' : s === 'init' ? '연결 중…' : '동기화 지연';
+  const box = $('syncBox'); if (!box) return;
+  box.className = 'sync ' + (s === 'ok' ? 'ok' : s === 'init' ? 'warn' : 'err');
+  $('syncText').textContent = s === 'ok' ? '실시간 연결됨' : s === 'init' ? '연결 중…' : '동기화 지연';
 }
 
 /* ============================================================
-   9. UI
+   3. 내 피클
    ============================================================ */
-function fmtTime(ts) {
-  if (!ts) return '';
-  const d = new Date(ts);
-  return d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
+function savedMe(){
+  try { return JSON.parse(localStorage.getItem(ME_KEY) || 'null'); } catch(_) { return null; }
 }
-function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m])); }
+function saveMe(){
+  try {
+    if (state.me) localStorage.setItem(ME_KEY, JSON.stringify({ id:state.me.id, name:state.me.name, color:state.me.color, seat:state.me.seat }));
+    else localStorage.removeItem(ME_KEY);
+  } catch(_) {}
+}
+function joinWith(name, color, seat, fixedId){
+  const id = fixedId || 'p-' + rand(8);
+  state.me = {
+    id, name: name.slice(0, 12), color,
+    seat: normSeat(seat),
+    status: fixedId === 'salang' ? '비서실장 · 상주' : '입장',
+    memo: ''
+  };
+  mergeSelfIntoAgents();
+  saveMe();
+  postSync();
+  renderAll();
+}
+function mergeSelfIntoAgents(){
+  if (!state.me) return;
+  const prev = state.agents.get(state.me.id) || {};
+  state.agents.set(state.me.id, Object.assign({}, prev, state.me, { at: Date.now() }));
+}
+function postSync(){
+  if (!state.me) return;
+  postEvent({
+    op:'sync', id: state.me.id, name: state.me.name, color: state.me.color,
+    seat: state.me.seat, status: state.me.status || '', memo: state.me.memo || '',
+    at: Date.now()
+  });
+}
 
-function renderPanels() {
-  const agents = [...state.agents.values()].sort((a, b) => (a.id === 'salang' ? -1 : b.id === 'salang' ? 1 : (b.at || 0) - (a.at || 0)));
-  document.getElementById('cntPeople').textContent = agents.length;
-  document.getElementById('cntNotes').textContent = state.notes.length;
-  document.getElementById('noteCount').textContent = state.notes.length + '개';
+/* ============================================================
+   4. 렌더 — 오피스 탭
+   ============================================================ */
+function activeZones(){
+  return ZONES.filter(z => zoneAgents(z.id).length > 0);
+}
+function renderHero(){
+  const n = activeZones().length;
+  $('heroTitle').innerHTML = n > 0
+    ? `대표님, <b>${n}</b>개 파트가 대기 중이에요`
+    : `대표님, 아직 <b>0</b>개 파트가 대기 중이에요`;
+  $('pillZones').textContent = n;
+  const b = $('btnJoin');
+  if (state.me){ b.textContent = '내 피클 · ' + state.me.name; b.classList.add('primary'); }
+  else { b.textContent = '내 피클 입장'; b.classList.add('primary'); }
+  const pm = $('pillMe');
+  if (state.me){
+    pm.hidden = false;
+    pm.innerHTML = `${avatarHTML({ id: state.me.id, name: state.me.name, color: state.me.color }, 'tiny')}${esc(state.me.name)} 피클`;
+    pm.onclick = openMe;
+  } else { pm.hidden = true; pm.onclick = null; }
+}
+function buildPins(){
+  const box = $('mapPins');
+  box.innerHTML = ZONES.map(z =>
+    `<button class="zp" data-zone="${z.id}" style="left:${z.x}%;top:${z.y}%"><i></i>${esc(z.name)}</button>`
+  ).join('');
+  box.querySelectorAll('.zp').forEach(b => b.onclick = () => openZone(b.dataset.zone));
+}
+function renderMap(){
+  const agents = [...state.agents.values()]
+    .filter(a => SEAT_MAP[a.seat])
+    .sort((a,b) => (a.id === 'salang' ? -1 : b.id === 'salang' ? 1 : 0));
+  const sig = agents.map(a => `${a.id}|${a.name}|${a.color}|${a.seat}`).join(';');
+  if (sig === state.mapSig) return;
+  state.mapSig = sig;
+  const box = $('mapNodes');
+  box.innerHTML = agents.map((a, i) => {
+    const s = SEAT_MAP[a.seat];
+    const c = a.color || '#8B5CF6';
+    const isMe = a.id === 'salang';
+    const initial = isMe ? 'ㅅ' : String(a.name || '?').slice(0,1);
+    const style = `background:linear-gradient(160deg, ${esc(c)}, ${esc(shade(c, .74))}); color:${inkOn(c)}`;
+    return `<button class="node" data-id="${esc(a.id)}" style="left:${s.x}%;top:${s.y}%" title="${esc(a.name)} · ${esc(seatLabel(a.seat))}">
+      <span class="bob" style="animation-delay:${(i * .55).toFixed(2)}s">
+        <span class="pick${isMe ? ' me' : ''}" style="${style}">${esc(initial)}</span>
+      </span>
+      <span class="node-name">${esc(a.name)}</span>
+    </button>`;
+  }).join('');
+  box.querySelectorAll('.node').forEach(n => n.onclick = () => openPerson(n.dataset.id));
+}
+function renderSpaces(){
+  $('spaceGrid').innerHTML = ZONES.map(z => {
+    const list = zoneAgents(z.id);
+    const who = list.length
+      ? list.slice(0,4).map(a => avatarHTML(a)).join('') +
+        `<span class="nm">${esc(list.slice(0,2).map(a => a.name).join(', '))}${list.length > 2 ? ' 외 ' + (list.length - 2) + '명' : ''}</span>`
+      : `<span class="nm" style="color:#A3AAB6;font-weight:600">아직 비어 있어요</span>`;
+    return `<button class="card space" data-zone="${z.id}">
+      <div class="space-top"><span class="zname">${esc(z.name)}</span><span class="zcount ${list.length ? '' : 'zero'}">${list.length}명</span></div>
+      <div class="zdesc">${esc(z.desc)}</div>
+      <div class="zwho">${who}</div>
+    </button>`;
+  }).join('');
+  $('spaceGrid').querySelectorAll('.space').forEach(b => b.onclick = () => openZone(b.dataset.zone));
+}
+function renderAll(){
+  renderHero(); renderMap(); renderSpaces();
+  renderMeeting(); renderStudio(); renderStatus(); renderMemo(); renderComposeWho();
+  if (sheetKind === 'zone') openZone(sheetKey, true);
+  if (sheetKind === 'person') openPerson(sheetKey, true);
+}
 
+/* ============================================================
+   5. 렌더 — 좌석 · 현황 · 메모
+   ============================================================ */
+function seatCard(seat, occupants){
+  const a = occupants[0];
+  const busy = !!a;
+  const mine = a && state.me && a.id === state.me.id;
+  const isSalang = a && a.id === 'salang';
+  const who = busy
+    ? `${avatarHTML(a)}<div style="min-width:0"><div class="n">${esc(a.name)}${isSalang ? ' <span style="font-size:9px;color:#6D28D9;font-weight:800">실장</span>' : ''}</div><div class="s">${esc(a.status || a.memo || '대기 중')}</div></div>`
+    : `<span class="empty">비어 있음 · 바로 앉을 수 있어요</span>`;
+  return `<div class="card seat ${busy ? 'busy' : ''}">
+    <div class="sh"><span>${esc(seat.label)}</span><span class="tag">${mine ? '내 자리' : busy ? (isSalang ? '상주' : '사용 중') : '여유'}</span></div>
+    <div class="who">${who}</div>
+    <button class="mini ${mine ? 'mine' : ''}" data-seat="${seat.id}">${mine ? '내 자리 · 설정' : '이 자리로'}</button>
+  </div>`;
+}
+function renderSeatsInto(el, zoneId, countEl){
+  const list = SEATS.filter(s => s.zone === zoneId);
+  const occ = zoneAgents(zoneId);
+  const taken = new Set(occ.map(a => a.seat));
+  el.innerHTML = list.map(s => seatCard(s, occ.filter(a => a.seat === s.id))).join('');
+  el.querySelectorAll('.mini').forEach(b => b.onclick = () => onSeatClick(b.dataset.seat));
+  if (countEl){
+    const used = list.filter(s => taken.has(s.id)).length;
+    countEl.textContent = used + '석 사용 중';
+  }
+}
+function renderMeeting(){ renderSeatsInto($('meetingSeats'), 'meeting', $('meetingCount')); renderZoneNotes($('meetingNotes'), 'meeting'); }
+function renderStudio(){ renderSeatsInto($('studioSeats'), 'studio', $('studioCount')); renderZoneNotes($('studioNotes'), 'studio'); }
+function renderZoneNotes(el, zoneId){
+  const arr = notesByZone(zoneId).slice(-4).reverse();
+  el.innerHTML = arr.length ? arr.map(noteHTML).join('')
+    : '<div class="empty-state">아직 이 공간에 남긴 메모가 없어요.</div>';
+}
+function notesByZone(zoneId){
+  return state.notes.filter(n => n.seat && seatZone(normSeat(n.seat)) === zoneId);
+}
+function noteHTML(n){
+  const seat = n.seat ? SEAT_MAP[normSeat(n.seat)] : null;
+  const z = seat ? ZONE_MAP[seat.zone] : null;
+  return `<div class="memo">
+    <div class="mh">${avatarHTML({ id: n.id, name: n.name, color: n.color })}<b>${esc(n.name)}</b>${z ? `<span class="zone">${esc(z.name)}</span>` : ''}<time>${fmtTime(n.at)}</time></div>
+    <div class="tx">${esc(n.text)}</div>
+  </div>`;
+}
+function renderStatus(){
+  const agents = [...state.agents.values()].sort((a,b) => (a.id === 'salang' ? -1 : b.id === 'salang' ? 1 : (b.at||0) - (a.at||0)));
   const taken = new Set(agents.map(a => a.seat));
-  const free = SEATS.length - [...taken].filter(s => SEAT_MAP[s]).length;
-  document.getElementById('seatFree').textContent = '여유석 ' + Math.max(0, free);
+  $('stPeople').innerHTML = agents.length + '<small>명</small>';
+  $('stZones').innerHTML = activeZones().length + '<small>/4</small>';
+  $('stFree').innerHTML = Math.max(0, SEATS.length - taken.size) + '<small>석</small>';
+  $('stNotes').innerHTML = state.notes.length + '<small>개</small>';
+  $('statusCount').textContent = agents.length + '명';
 
-  const pl = document.getElementById('peopleList');
-  pl.innerHTML = agents.map(a => {
-    const seat = SEAT_MAP[a.seat];
-    const zone = seat ? seat.zone + ' · ' + seat.label : '이동 중';
-    return `<div class="who ${state.sel === a.id ? 'sel' : ''}" data-id="${esc(a.id)}">
-      <div class="av" style="background:linear-gradient(160deg,${esc(a.color)},${esc(shade(a.color, .62))})"><i></i>${esc((a.name || '?').slice(0, 1))}</div>
-      <div style="min-width:0;flex:1">
-        <div class="nm">${esc(a.name)}${a.id === 'salang' ? ' <em>비서실장</em>' : ''}</div>
-        <div class="st">${esc(a.status || (a.memo || '대기 중'))}</div>
-        <div class="zone">${esc(zone)}${a.at ? ' · ' + fmtTime(a.at) : ''}</div>
-      </div></div>`;
-  }).join('') || '<div style="padding:14px;color:#8b87a0;font-size:12px">아직 아무도 없습니다</div>';
-
-  const nl = document.getElementById('noteList');
-  const notes = state.notes.slice().reverse();
-  nl.innerHTML = notes.map(n => `<div class="note">
-      <div class="meta"><span style="width:8px;height:8px;border-radius:50%;background:${esc(n.color || '#a78bfa')};display:inline-block"></span>
-      <b>${esc(n.name || '피클')}</b><span>${fmtTime(n.at)}</span></div>
-      <div class="tx">${esc(n.text)}</div></div>`).join('') ||
-    '<div style="color:#8b87a0;font-size:12px;padding:6px">첫 메모를 남겨보세요.</div>';
-
-  // 자리 선택
-  const sel = document.getElementById('meSeat');
-  const mySeat = state.me ? state.me.seat : '';
-  sel.innerHTML = SEATS.map(s => {
-    const busy = taken.has(s.id) && !(state.me && state.me.seat === s.id);
-    return `<option value="${s.id}" ${s.id === mySeat ? 'selected' : ''}>${esc(s.zone + ' · ' + s.label)}${busy ? ' (사용 중)' : ''}</option>`;
+  $('zoneBars').innerHTML = ZONES.map(z => {
+    const seats = SEATS.filter(s => s.zone === z.id).length;
+    const n = zoneAgents(z.id).length;
+    const pct = seats ? Math.round(n / seats * 100) : 0;
+    return `<div class="bar"><div class="bl"><span>${esc(z.name)}</span><span>${n} / ${seats}석</span></div>
+      <div class="track"><i style="width:${Math.max(pct, n ? 10 : 0)}%"></i></div></div>`;
   }).join('');
 
-  if (state.me) {
-    document.getElementById('meName').innerHTML = `<b>${esc(state.me.name)}</b> 로 접속 중`;
-    document.getElementById('meJoin').textContent = '이름 변경';
-    document.getElementById('meStatus').value = state.me.status || '';
-    document.getElementById('meMemo').value = state.me.memo || '';
+  $('peopleList').innerHTML = agents.map(a => {
+    const z = ZONE_MAP[seatZone(a.seat)];
+    return `<div class="row" data-id="${esc(a.id)}">
+      ${avatarHTML(a)}
+      <div style="min-width:0;flex:1">
+        <div class="rname">${esc(a.name)}${a.id === 'salang' ? '<em>비서실장</em>' : ''}</div>
+        <div class="rsub">${esc(z ? z.name + ' · ' + seatLabel(a.seat) : '이동 중')} · ${esc(a.status || a.memo || '대기 중')}</div>
+      </div>
+      <span class="rtime">${fmtTime(a.at)}</span>
+    </div>`;
+  }).join('') || '<div class="empty-state">아직 아무도 없어요.</div>';
+  $('peopleList').querySelectorAll('.row').forEach(r => r.onclick = () => openPerson(r.dataset.id));
+}
+function renderMemo(){
+  const arr = state.notes.slice().reverse();
+  $('memoList').innerHTML = arr.length ? arr.map(noteHTML).join('')
+    : '<div class="empty-state">첫 메모를 남겨보세요.</div>';
+}
+function renderComposeWho(){
+  const el = $('composeWho');
+  if (state.me){
+    el.innerHTML = `${avatarHTML({ id: state.me.id, name: state.me.name, color: state.me.color })}<span><b style="color:#334155">${esc(state.me.name)}</b> 로 남기는 중 · ${esc(seatLabel(state.me.seat))}</span>`;
   } else {
-    document.getElementById('meName').textContent = '아직 입장 전';
-    document.getElementById('meJoin').textContent = '내 피클 입장';
+    el.innerHTML = '<span>게스트로 남기는 중 · 입장하면 내 자리가 표시돼요</span>';
   }
-  updateZones();
-}
-
-function updateZones() {
-  const zones = [...new Set(SEATS.map(s => s.zone))];
-  const agents = [...state.agents.values()];
-  document.getElementById('zonebar').innerHTML = zones.map(z => {
-    const n = agents.filter(a => (SEAT_MAP[a.seat] || {}).zone === z).length;
-    return `<button data-zone="${esc(z)}"><span>${esc(z)}</span><b>${n}</b></button>`;
-  }).join('') + `<button data-zone="__all"><span>전체</span><b>${agents.length}</b></button>`;
-}
-
-function roParticle(word) {
-  const w = String(word || '').trim();
-  if (!w) return '으로';
-  const ch = w[w.length - 1];
-  const code = ch.charCodeAt(0);
-  if (code >= 0xAC00 && code <= 0xD7A3) {
-    const jong = (code - 0xAC00) % 28;
-    return (jong === 0 || jong === 8) ? '로' : '으로';
-  }
-  return '로';
-}
-
-function toast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('on');
-  clearTimeout(toast._t);
-  toast._t = setTimeout(() => el.classList.remove('on'), 2200);
-}
-
-/* --- 입장 --- */
-let joinColor = COLORS[2 + Math.floor(Math.random() * (COLORS.length - 2))];
-function buildJoinUI() {
-  const box = document.getElementById('joinColors');
-  box.innerHTML = COLORS.map(c => `<div class="sw ${c === joinColor ? 'on' : ''}" data-c="${c}" style="background:linear-gradient(160deg,${c},${shade(c, .6)})"></div>`).join('');
-  const taken = new Set([...state.agents.values()].map(a => a.seat));
-  const sel = document.getElementById('joinSeat');
-  sel.innerHTML = SEATS.map(s => `<option value="${s.id}" ${taken.has(s.id) ? '' : ''}>${esc(s.zone + ' · ' + s.label)}${taken.has(s.id) ? ' (사용 중)' : ''}</option>`).join('');
-  const firstFree = SEATS.find(s => !taken.has(s.id));
-  if (firstFree) sel.value = firstFree.id;
-}
-function openJoin() {
-  buildJoinUI();
-  const saved = loadMe();
-  document.getElementById('joinName').value = saved ? saved.name : '';
-  if (saved) {
-    joinColor = saved.color || COLORS[0];
-    const box = document.getElementById('joinColors');
-    [...box.children].forEach(c => c.classList.toggle('on', c.dataset.c === joinColor));
-  }
-  document.getElementById('joinModal').classList.add('on');
-}
-function joinWith(name, color, seat, id) {
-  const me = { id: id || ('p-' + Math.random().toString(36).slice(2, 8)), name, color, seat, status: '', memo: '' };
-  state.me = me;
-  saveMe(me);
-  const ev = { op: 'sync', id: me.id, name: me.name, color: me.color, kind: me.id === 'salang' ? 'me' : 'friend', seat: me.seat, status: me.status, memo: me.memo, at: Date.now() };
-  postEvent(ev);
-  // 낙관적 반영
-  const a = Object.assign({}, me, { kind: ev.kind, at: ev.at });
-  ensureAgentMotion(a);
-  a._p = { x: 8.9, y: 8.4 };
-  state.agents.set(a.id, a);
-  renderPanels();
-  document.getElementById('joinModal').classList.remove('on');
-  toast(name + ' 피클이 비서실에 들어왔습니다');
-  hideHintSoon();
-  setTimeout(readState, 1200);
-}
-function saveMe(me) { try { localStorage.setItem(ME_KEY, JSON.stringify(me)); } catch (_) {} }
-function loadMe() { try { return JSON.parse(localStorage.getItem(ME_KEY) || 'null'); } catch (_) { return null; } }
-
-function pushMe(patch, immediate) {
-  if (!state.me) { openJoin(); return; }
-  Object.assign(state.me, patch);
-  saveMe(state.me);
-  const a = state.agents.get(state.me.id);
-  if (a) { Object.assign(a, patch); ensureAgentMotion(a); }
-  clearTimeout(pushMe._t);
-  const send = () => postEvent(Object.assign({ op: 'sync', kind: state.me.id === 'salang' ? 'me' : 'friend', at: Date.now() }, state.me));
-  if (immediate) send(); else pushMe._t = setTimeout(send, 700);
-  renderPanels();
-}
-
-function sendNote(text) {
-  if (!state.me) { openJoin(); return; }
-  const t = text.trim().slice(0, 300);
-  if (!t) return;
-  const ev = { op: 'note', id: 'n-' + Math.random().toString(36).slice(2, 9), name: state.me.name, color: state.me.color, text: t, at: Date.now(), seat: state.me.seat };
-  postEvent(ev);
-  state.notes.push(ev);
-  const a = state.agents.get(state.me.id);
-  if (a) a._bubble = { text: t, until: performance.now() + 6500 };
-  renderPanels();
-  document.getElementById('noteList').scrollTop = 0;
-  setTimeout(readState, 1500);
-}
-
-/* --- 캔버스 클릭 --- */
-canvas.addEventListener('click', e => {
-  const mx = e.clientX, my = e.clientY;
-  let best = null, bestD = 46;
-  state.agents.forEach(a => {
-    const p = a._p || seatPos(a);
-    const s = project(p.x, p.y, 0);
-    const d = Math.hypot(s[0] - mx, (s[1] - my) - S * 0.42);
-    if (d < bestD) { bestD = d; best = a; }
-  });
-  if (best) { state.sel = best.id; renderPanels(); showDetail(best); return; }
-  let bestSeat = null, bd = 30;
-  SEATS.forEach(s => {
-    const p = project(s.x, s.y, 0);
-    const d = Math.hypot(p[0] - mx, p[1] - my);
-    if (d < bd) { bd = d; bestSeat = s; }
-  });
-  if (bestSeat) {
-    if (!state.me) { openJoin(); return; }
-    const busy = [...state.agents.values()].find(a => a.seat === bestSeat.id && a.id !== state.me.id);
-    if (busy) { toast(bestSeat.label + '에는 ' + busy.name + ' 피클이 있어요'); return; }
-    pushMe({ seat: bestSeat.id }, true);
-    toast(bestSeat.zone + ' · ' + bestSeat.label + roParticle(bestSeat.label) + ' 이동');
-    return;
-  }
-  state.sel = null; renderPanels();
-});
-
-function showDetail(a) {
-  const seat = SEAT_MAP[a.seat];
-  toast(`${a.name} · ${seat ? seat.zone + ' / ' + seat.label : '이동 중'}${a.status ? ' · ' + a.status : ''}`);
-}
-
-/* --- 이벤트 배선 --- */
-document.getElementById('noteSend').addEventListener('click', () => {
-  const el = document.getElementById('noteInput');
-  sendNote(el.value); el.value = '';
-});
-document.getElementById('noteInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    const el = e.target; sendNote(el.value); el.value = '';
-  }
-});
-document.getElementById('meJoin').addEventListener('click', openJoin);
-document.getElementById('joinGo').addEventListener('click', () => {
-  const name = (document.getElementById('joinName').value || '').trim() || '친구';
-  const seat = document.getElementById('joinSeat').value;
-  joinWith(name, joinColor, seat, state.me && state.me.name === name ? state.me.id : null);
-});
-document.getElementById('joinSalang').addEventListener('click', () => {
-  joinWith('사랑', '#a78bfa', 'conf-head', 'salang');
-});
-document.getElementById('joinColors').addEventListener('click', e => {
-  const sw = e.target.closest('.sw');
-  if (!sw) return;
-  joinColor = sw.dataset.c;
-  [...e.currentTarget.children].forEach(c => c.classList.toggle('on', c === sw));
-});
-document.getElementById('meSeat').addEventListener('change', e => pushMe({ seat: e.target.value }, true));
-document.getElementById('meStatus').addEventListener('input', e => pushMe({ status: e.target.value }));
-document.getElementById('meMemo').addEventListener('input', e => pushMe({ memo: e.target.value }));
-document.getElementById('btnRefresh').addEventListener('click', () => { readState(); toast('새로고침'); });
-document.getElementById('btnInvite').addEventListener('click', () => {
-  document.getElementById('inviteModal').classList.add('on');
-});
-document.getElementById('inviteClose').addEventListener('click', () => document.getElementById('inviteModal').classList.remove('on'));
-document.getElementById('peopleList').addEventListener('click', e => {
-  const w = e.target.closest('.who');
-  if (!w) return;
-  state.sel = w.dataset.id; renderPanels();
-  const a = state.agents.get(w.dataset.id);
-  if (a) showDetail(a);
-});
-document.getElementById('zonebar').addEventListener('click', e => {
-  const b = e.target.closest('button');
-  if (!b) return;
-  const z = b.dataset.zone;
-  if (z === '__all') { state.sel = null; renderPanels(); toast('전체 참석자 ' + state.agents.size + '명'); return; }
-  const list = [...state.agents.values()].filter(a => (SEAT_MAP[a.seat] || {}).zone === z);
-  toast(z + ': ' + (list.length ? list.map(a => a.name).join(', ') : '아직 비어 있음'));
-});
-document.querySelectorAll('.modal').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.classList.remove('on'); }));
-
-/* --- 초대/API 텍스트 --- */
-function fillInvite() {
-  const base = location.origin + location.pathname;
-  document.getElementById('inviteUrl').textContent = base + '?as=이름';
-  document.getElementById('apiBox').textContent =
-`# 상태 읽기 (공개 시트)
-GET https://docs.google.com/spreadsheets/d/${API.sheet}/gviz/tq?sheet=${encodeURIComponent(API.tab)}&tqx=out:json
-
-# 상태/메모 쓰기 (익명 POST)
-POST ${API.form}
-Content-Type: application/x-www-form-urlencoded
-entry.${API.entry}={"op":"sync","id":"my-pickle","name":"친구","color":"#7dd3fc","seat":"lounge-1","status":"라운지에서 대기","at":1700000000000}`;
-}
-
-/* --- 시계 --- */
-function tickClock() {
-  const d = new Date();
-  document.getElementById('clock').textContent = d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
-}
-
-/* --- 힌트 --- */
-function hideHintSoon() {
-  const h = document.getElementById('hint');
-  h.classList.remove('on');
-}
-function showHint() {
-  const h = document.getElementById('hint');
-  h.classList.add('on');
-  setTimeout(() => h.classList.remove('on'), 7000);
 }
 
 /* ============================================================
-   10. 시작
+   6. 시트(모달)
    ============================================================ */
-function boot() {
-  layout();
-  window.addEventListener('resize', () => { layout(); drawOLED(); });
-  setTimeout(() => { layout(); }, 60);
+let sheetKind = null, sheetKey = null;
+function openSheet(title, html, onMount){
+  $('sheetTitle').textContent = title;
+  $('sheetBody').innerHTML = html;
+  $('scrim').hidden = false;
+  requestAnimationFrame(() => { $('scrim').classList.add('on'); $('sheet').classList.add('on'); });
+  if (onMount) onMount($('sheetBody'));
+}
+function closeSheet(){
+  $('sheet').classList.remove('on');
+  $('scrim').classList.remove('on');
+  sheetKind = null; sheetKey = null;
+  setTimeout(() => { if (!$('sheet').classList.contains('on')) $('scrim').hidden = true; }, 220);
+}
+function bindClose(){
+  $('sheetClose').onclick = closeSheet;
+  $('scrim').onclick = closeSheet;
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
+}
+function openZone(zid, keep){
+  const z = ZONE_MAP[zid]; if (!z) return;
+  sheetKind = 'zone'; sheetKey = zid;
+  const occ = zoneAgents(zid);
+  const seats = SEATS.filter(s => s.zone === zid);
+  const notes = notesByZone(zid).slice(-3).reverse();
+  const html = `
+    <div class="who-head">
+      <div class="big" style="background:linear-gradient(160deg,#EDE9FE,#DDD6FE);color:#6D28D9">${occ.length}<span style="font-size:11px;font-weight:700">명</span></div>
+      <div><div class="t">${esc(z.name)}</div><div class="u">${esc(z.desc)}</div></div>
+    </div>
+    <div class="kv">
+      <span class="k">좌석</span><span class="v">${seats.length}석 중 ${occ.length}석 사용</span>
+      <span class="k">자리</span><span class="v">${seats.map(s => s.label).join(' · ')}</span>
+    </div>
+    <div class="divider"></div>
+    <div class="minih">이 공간의 피클</div>
+    ${occ.length ? occ.map(a => `<div class="row" data-person="${esc(a.id)}">${avatarHTML(a)}<div style="min-width:0;flex:1"><div class="rname">${esc(a.name)}${a.id === 'salang' ? '<em>비서실장</em>' : ''}</div><div class="rsub">${esc(seatLabel(a.seat))} · ${esc(a.status || a.memo || '대기 중')}</div></div><span class="rtime">${fmtTime(a.at)}</span></div>`).join('')
+      : '<div class="empty-state" style="padding:18px 0">아직 아무도 없어요. 이 자리로 들어가 볼까요?</div>'}
+    <div class="minih">최근 메모</div>
+    ${notes.length ? notes.map(n => `<div style="font-size:12.5px;color:#334155;line-height:1.55;padding:7px 0;border-bottom:1px solid #F4F5F7"><b>${esc(n.name)}</b> · ${esc(n.text)}</div>`).join('')
+      : '<div style="font-size:12px;color:#9AA2AF;padding:4px 0">아직 메모가 없어요.</div>'}
+    <div class="rowbtns">
+      ${state.me && seatZone(state.me.seat) === zid
+        ? '<button class="btn" id="zStay">지금 이 공간에 있어요</button>'
+        : `<button class="btn primary" id="zMove">${state.me ? '이 공간으로 이동' : '이 공간 자리로 입장'}</button>`}
+      <button class="btn" id="zClose">닫기</button>
+    </div>`;
+  openSheet(z.name, html, body => {
+    body.querySelectorAll('[data-person]').forEach(r => r.onclick = () => openPerson(r.dataset.person));
+    const mv = body.querySelector('#zMove');
+    if (mv) mv.onclick = () => { const free = seats.find(s => !isTaken(s.id)); if (state.me) moveTo(free ? free.id : seats[0].id); else openJoin(free ? free.id : seats[0].id); };
+    const st = body.querySelector('#zStay'); if (st) st.onclick = closeSheet;
+    body.querySelector('#zClose').onclick = closeSheet;
+  });
+}
+function isTaken(seatId, exceptId){
+  return [...state.agents.values()].some(a => a.seat === seatId && a.id !== exceptId);
+}
+function openPerson(id, keep){
+  const a = state.agents.get(id); if (!a) return;
+  sheetKind = 'person'; sheetKey = id;
+  const isSalang = a.id === 'salang';
+  const c = a.color || '#8B5CF6';
+  const z = ZONE_MAP[seatZone(a.seat)];
+  const notes = state.notes.filter(n => n.name === a.name).slice(-2).reverse();
+  const html = `
+    <div class="who-head">
+      <div class="big" style="background:linear-gradient(160deg,${esc(c)},${esc(shade(c,.74))});color:${inkOn(c)}">${isSalang ? 'ㅅ' : esc(String(a.name||'?').slice(0,1))}</div>
+      <div><div class="t">${esc(a.name)}</div><div class="u">${isSalang ? '비서실장 · 상주' : '친구 피클'} · ${esc(z ? z.name + ' · ' + seatLabel(a.seat) : '이동 중')}</div></div>
+    </div>
+    <div class="kv">
+      <span class="k">상태</span><span class="v">${esc(a.status || '대기 중')}</span>
+      <span class="k">한 줄 메모</span><span class="v">${esc(a.memo || '—')}</span>
+      <span class="k">최근 접속</span><span class="v">${a.at ? fmtTime(a.at) : '—'}</span>
+    </div>
+    ${notes.length ? `<div class="divider"></div><div class="minih">최근 남긴 메모</div>${notes.map(n => `<div style="font-size:12.5px;color:#334155;line-height:1.55;padding:6px 0"><time style="color:#9AA2AF;font-size:10.5px;margin-right:6px">${fmtTime(n.at)}</time>${esc(n.text)}</div>`).join('')}` : ''}
+    <div class="rowbtns">
+      ${state.me && state.me.id === a.id ? '<button class="btn primary" id="pMe">내 피클 설정</button>' : ''}
+      <button class="btn" id="pClose">닫기</button>
+    </div>`;
+  openSheet(a.name + ' 피클', html, body => {
+    const me = body.querySelector('#pMe');
+    if (me) me.onclick = openMe;
+    body.querySelector('#pClose').onclick = closeSheet;
+  });
+}
+function openJoin(preselect){
+  state.pendingSeat = preselect || null;
+  sheetKind = 'join'; sheetKey = null;
+  const saved = savedMe();
+  const name = (state.me && state.me.name) || (saved && saved.name) || '';
+  const color = (state.me && state.me.color) || (saved && saved.color) || COLORS[0];
+  const seat = preselect || (saved && SEAT_MAP[saved.seat] ? saved.seat : null) || firstFreeSeat();
+  const html = `
+    <form id="joinForm">
+      <label class="lbl" for="jName">이름</label>
+      <input class="inp" id="jName" maxlength="12" placeholder="예: 지우" value="${esc(name)}" autocomplete="nickname">
+      <label class="lbl">색</label>
+      <div class="swatches" id="jColors">${COLORS.map(c => `<button type="button" class="sw${c === color ? ' on' : ''}" data-c="${c}" style="--c:${c}" aria-label="${c}"></button>`).join('')}</div>
+      <label class="lbl" for="jSeat">첫 자리</label>
+      <select class="inp" id="jSeat">${seatOptions(seat)}</select>
+      <div class="rowbtns"><button class="btn primary wide" type="submit">입장하기</button></div>
+      <p class="note">입장하면 이 기기에 내 피클이 기억돼요. 자리와 상태는 친구 피클들에게 실시간으로 보입니다.</p>
+    </form>`;
+  openSheet(state.me ? '내 피클' : '내 피클 입장', html, body => {
+    let picked = color;
+    body.querySelectorAll('.sw').forEach(sw => sw.onclick = () => {
+      body.querySelectorAll('.sw').forEach(x => x.classList.remove('on'));
+      sw.classList.add('on'); picked = sw.dataset.c;
+    });
+    body.querySelector('#joinForm').onsubmit = e => {
+      e.preventDefault();
+      const nm = body.querySelector('#jName').value.trim();
+      if (!nm) { body.querySelector('#jName').focus(); return; }
+      const st = body.querySelector('#jSeat').value;
+      if (state.me) { state.me.name = nm.slice(0,12); state.me.color = picked; moveTo(st); }
+      else joinWith(nm, picked, st);
+      closeSheet(); toast('입장했어요. 자리를 골라 보세요.');
+    };
+  });
+  setTimeout(() => { const f = $('jName'); if (f && !name) f.focus(); }, 260);
+}
+function seatOptions(sel){
+  return SEATS.map(s => {
+    const busy = isTaken(s.id, state.me && state.me.id);
+    return `<option value="${s.id}" ${s.id === sel ? 'selected' : ''}>${esc(ZONE_MAP[s.zone].name + ' · ' + s.label)}${busy ? ' (사용 중)' : ''}</option>`;
+  }).join('');
+}
+function firstFreeSeat(){
+  const t = new Set([...state.agents.values()].map(a => a.seat));
+  const f = SEATS.filter(s => s.zone !== 'desk').find(s => !t.has(s.id));
+  return f ? f.id : 'lounge-3';
+}
+function openMe(){
+  if (!state.me){ openJoin(); return; }
+  sheetKind = 'me'; sheetKey = null;
+  const html = `
+    <form id="meForm">
+      <div class="who-head">
+        <div class="big" style="background:linear-gradient(160deg,${esc(state.me.color)},${esc(shade(state.me.color,.74))});color:${inkOn(state.me.color)}">${esc(String(state.me.name).slice(0,1))}</div>
+        <div><div class="t">${esc(state.me.name)}</div><div class="u">${esc(seatLabel(state.me.seat))}</div></div>
+      </div>
+      <label class="lbl" for="mSeat">자리</label>
+      <select class="inp" id="mSeat">${seatOptions(state.me.seat)}</select>
+      <label class="lbl" for="mStatus">상태 메시지</label>
+      <input class="inp" id="mStatus" maxlength="40" placeholder="예: 회의 준비 중" value="${esc(state.me.status || '')}">
+      <label class="lbl" for="mMemo">한 줄 메모</label>
+      <input class="inp" id="mMemo" maxlength="60" placeholder="예: 10시 회의 세팅 완료" value="${esc(state.me.memo || '')}">
+      <div class="rowbtns"><button class="btn primary" type="submit">저장</button><button class="btn danger" type="button" id="mLeave">퇴장</button></div>
+      <p class="note">저장하면 친구 피클들의 화면에 바로 반영돼요.</p>
+    </form>`;
+  openSheet('내 피클 설정', html, body => {
+    body.querySelector('#meForm').onsubmit = e => {
+      e.preventDefault();
+      state.me.seat = normSeat(body.querySelector('#mSeat').value);
+      state.me.status = body.querySelector('#mStatus').value.trim().slice(0,40);
+      state.me.memo = body.querySelector('#mMemo').value.trim().slice(0,60);
+      mergeSelfIntoAgents(); saveMe(); postSync(); renderAll(); closeSheet();
+      toast('저장했어요');
+    };
+    body.querySelector('#mLeave').onclick = () => {
+      postEvent({ op:'leave', id: state.me.id });
+      state.agents.delete(state.me.id);
+      state.me = null; state.mapSig = ''; saveMe(); renderAll(); closeSheet();
+      toast('퇴장했어요');
+    };
+  });
+}
+function openInvite(){
+  const nm = (state.me && state.me.name) || '친구';
+  const link = location.origin + location.pathname + '?as=' + encodeURIComponent(nm);
+  const html = `
+    <label class="lbl" for="invLink">초대 링크</label>
+    <div class="linkbox"><input class="inp" id="invLink" readonly value="${esc(link)}"><button class="btn" id="invCopy">복사</button></div>
+    <p class="note">링크로 들어온 피클은 이름이 미리 채워져요. 이름을 바꾸려면 <code>?as=이름</code>만 바꾸면 됩니다.</p>
+    <div class="divider"></div>
+    <div class="minih">다른 피클이 직접 읽고 쓰기</div>
+    <pre class="code">GET https://docs.google.com/spreadsheets/d/${API.sheet}/gviz/tq?sheet=${encodeURIComponent(API.tab)}&amp;tqx=out:json
 
-  // URL 파라미터로 입장 (?as=이름)
-  const params = new URLSearchParams(location.search);
-  const asName = params.get('as');
-  const saved = loadMe();
-  if (asName) {
-    if (asName === '사랑' || asName === 'salang') joinWith('사랑', '#a78bfa', 'conf-head', 'salang');
-    else joinWith(asName.slice(0, 12), (saved && saved.color) || COLORS[Math.floor(Math.random() * COLORS.length)], (saved && saved.seat) || 'lounge-1', null);
-  } else if (saved) {
-    state.me = saved;
-    const a = Object.assign({}, saved, { kind: saved.id === 'salang' ? 'me' : 'friend' });
-    ensureAgentMotion(a);
-    state.agents.set(a.id, a);
-    // 재방문 시에는 로그를 늘리지 않는다(마지막으로 남긴 상태 그대로 표시).
+POST ${API.form}
+entry.${API.entry}={"op":"sync","id":"my-pickle","name":"친구","color":"#38BDF8","seat":"lounge-1","status":"라운지에서 대기","at":${Date.now()}}</pre>
+    <p class="note">자리 ID: ${SEATS.map(s => s.id).join(', ')}</p>
+    <div class="rowbtns"><button class="btn" id="invClose">닫기</button></div>`;
+  openSheet('친구 피클 초대', html, body => {
+    body.querySelector('#invCopy').onclick = async () => {
+      const v = body.querySelector('#invLink').value;
+      let ok = false;
+      try { await navigator.clipboard.writeText(v); ok = true; } catch(_) {}
+      if (!ok){ try { const i = body.querySelector('#invLink'); i.select(); i.setSelectionRange(0, 999); ok = document.execCommand('copy'); } catch(_) {} }
+      toast(ok ? '초대 링크를 복사했어요' : '링크를 길게 눌러 복사해 주세요');
+    };
+    body.querySelector('#invClose').onclick = closeSheet;
+  });
+}
+
+/* ============================================================
+   7. 동작
+   ============================================================ */
+function moveTo(seatId){
+  if (!state.me) { openJoin(seatId); return; }
+  if (isTaken(seatId, state.me.id)) { toast('그 자리는 이미 사용 중이에요'); return; }
+  state.me.seat = normSeat(seatId);
+  mergeSelfIntoAgents(); saveMe(); postSync(); renderAll();
+  toast('자리를 옮겼어요 · ' + seatLabel(state.me.seat));
+}
+function onSeatClick(seatId){
+  if (state.me && state.me.seat === seatId) { openMe(); return; }
+  if (!state.me){ openJoin(seatId); return; }
+  moveTo(seatId);
+}
+function addNote(){
+  const ta = $('memoInput');
+  const text = ta.value.trim();
+  if (!text){ ta.focus(); return; }
+  const me = state.me;
+  const ev = {
+    op:'note', id:'n-' + rand(7), name: me ? me.name : '게스트',
+    color: me ? me.color : '#94A3B8', text: text.slice(0,200),
+    at: Date.now(), seat: me ? me.seat : ''
+  };
+  postEvent(ev);
+  state.notes.push(ev);
+  if (state.notes.length > 80) state.notes.shift();
+  ta.value = '';
+  renderAll();
+  toast('메모를 남겼어요');
+}
+function switchTab(tab){
+  state.tab = tab;
+  document.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
+  document.querySelectorAll('section[data-panel]').forEach(p => p.classList.toggle('on', p.dataset.panel === tab));
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function toggleMotion(){
+  state.motion = !state.motion;
+  document.body.classList.toggle('motion', state.motion);
+  const b = $('btnMotion');
+  b.innerHTML = `<span class="sw"></span>모션 ${state.motion ? 'ON' : 'OFF'}`;
+  b.classList.toggle('dark', state.motion);
+  b.classList.toggle('off', !state.motion);
+  b.setAttribute('aria-pressed', String(state.motion));
+  try { localStorage.setItem('pickle-office-motion', state.motion ? '1' : '0'); } catch(_) {}
+}
+
+/* ============================================================
+   8. 시작
+   ============================================================ */
+function init(){
+  bindClose();
+  buildPins();
+  // 모션 설정 복원
+  try {
+    const m = localStorage.getItem('pickle-office-motion');
+    if (m === '0') toggleMotion();
+  } catch(_) {}
+  $('btnMotion').onclick = toggleMotion;
+  $('btnInvite').onclick = openInvite;
+  $('btnJoin').onclick = () => { if (state.me) openMe(); else openJoin(); };
+  $('pillSalang').onclick = () => openPerson('salang');
+  $('memoSend').onclick = addNote;
+  $('memoInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); addNote(); }
+  });
+  document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => switchTab(b.dataset.tab));
+
+  // 저장된 내 피클
+  const saved = savedMe();
+  if (saved && saved.name){
+    state.me = { id: saved.id || 'p-' + rand(8), name: saved.name, color: saved.color || COLORS[0],
+      seat: normSeat(saved.seat || 'lounge-3'), status:'입장', memo:'' };
+    mergeSelfIntoAgents();
+  }
+  // ?as= 사랑 / 친구
+  let as = '';
+  try { as = (new URLSearchParams(location.search).get('as') || '').trim(); } catch(_) {}
+  if (as){
+    const isSalang = (as === '사랑' || as === 'salang');
+    joinWith(isSalang ? '사랑' : as.slice(0,12),
+      isSalang ? '#8B5CF6' : (saved && saved.name === as ? (saved.color || COLORS[0]) : COLORS[Math.floor(Math.random()*COLORS.length)]),
+      isSalang ? 'desk-1' : ((saved && saved.name === as && SEAT_MAP[saved.seat]) ? saved.seat : firstFreeSeat()),
+      isSalang ? 'salang' : null);
   }
 
+  renderAll();
   readState();
-  renderPanels();
-  fillInvite();
-  tickClock();
-  setInterval(tickClock, 15000);
-  setInterval(() => { if (!document.hidden) readState(); }, 6000);
-  setInterval(drawOLED, 1000);
-  requestAnimationFrame(frame);
-
-  let last = performance.now();
-  setInterval(() => { const n = performance.now(); tickMotion(Math.min(.2, (n - last) / 1000)); last = n; }, 33);
-
-  if (!state.me) setTimeout(showHint, 1400);
-  document.getElementById('panelRight').classList.add('open');
+  setInterval(() => { if (document.visibilityState === 'visible') readState(); }, 6000);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') readState(); });
 }
-boot();
+init();
 })();
 </script>
 </body>
