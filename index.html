@@ -423,8 +423,8 @@
 </div>
 
 <div class="scrim" id="scrim" hidden></div>
-<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
-  <div class="sheet-head"><h3 id="sheetTitle">제목</h3><button class="xbtn" id="sheetClose" aria-label="닫기">✕</button></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" aria-hidden="true">
+  <div class="sheet-head"><h3 id="sheetTitle"></h3><button class="xbtn" id="sheetClose" aria-label="닫기">✕</button></div>
   <div class="sheet-body" id="sheetBody"></div>
 </div>
 <div class="toast" id="toast"></div>
@@ -862,12 +862,14 @@ function openSheet(title, html, onMount){
   $('sheetTitle').textContent = title;
   $('sheetBody').innerHTML = html;
   $('scrim').hidden = false;
+  $('sheet').setAttribute('aria-hidden', 'false');
   requestAnimationFrame(() => { $('scrim').classList.add('on'); $('sheet').classList.add('on'); });
   if (onMount) onMount($('sheetBody'));
 }
 function closeSheet(){
   $('sheet').classList.remove('on');
   $('scrim').classList.remove('on');
+  $('sheet').setAttribute('aria-hidden', 'true');
   sheetKind = null; sheetKey = null;
   setTimeout(() => {
     if (!$('sheet').classList.contains('on')){
