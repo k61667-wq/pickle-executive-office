@@ -98,15 +98,24 @@
   .toast{position:fixed;left:50%;top:70px;transform:translate(-50%,-12px);z-index:30;background:rgba(12,14,22,.95);border:1px solid var(--line);border-radius:12px;padding:10px 16px;font-size:12px;opacity:0;transition:.28s;pointer-events:none;box-shadow:0 16px 40px rgba(0,0,0,.6)}
   .toast.on{opacity:1;transform:translate(-50%,0)}
   @media (max-width:980px){
-    .left{width:220px;top:auto;bottom:78px;left:10px;max-height:32vh}
-    .right{left:10px;right:10px;top:auto;bottom:78px;width:auto;max-height:34vh;display:none}
-    .right.open{display:flex}
-    .left.hide{display:none}
-    .topbar{padding:10px 12px}
-    .brand h1{font-size:13px}
-    .brand .sub{font-size:9px;letter-spacing:.16em}
-    .chip{font-size:10.5px;padding:6px 9px}
-    .hint{bottom:70px;font-size:10.5px;padding:7px 12px}
+    .left{display:none}
+    .right{left:8px;right:8px;top:auto;bottom:112px;width:auto;max-height:40vh;display:flex}
+    .topbar{padding:9px 11px;gap:8px}
+    .brand{gap:8px}
+    .brand .mark{width:30px;height:30px;border-radius:9px}
+    .brand .mark svg{width:16px;height:16px}
+    .brand h1{font-size:12.5px;letter-spacing:.06em;white-space:nowrap}
+    .brand .sub{font-size:8px;letter-spacing:.13em;white-space:nowrap}
+    .statline{gap:5px}
+    .chip{font-size:10px;padding:5px 8px;gap:5px}
+    .chip.hide-sm{display:none}
+    .iconbtn{width:29px;height:29px;font-size:12px}
+    .zonebar{gap:2px;padding:4px}
+    .zonebar button{font-size:10.5px;padding:5px 8px;gap:4px}
+    .bottom{padding:8px 8px 10px}
+    .hint{bottom:64px;font-size:10px;padding:6px 11px}
+    .notes{padding:8px 10px}
+    .note{font-size:11.5px}
   }
 </style>
 </head>
@@ -125,7 +134,7 @@
   </div>
   <div class="statline">
     <div class="chip"><span class="dot" id="syncDot"></span><span id="syncText">연결 중…</span></div>
-    <div class="chip"><b id="clock">--:--</b><span style="opacity:.6">KST</span></div>
+    <div class="chip"><b id="clock">--:--</b><span class="hide-sm" style="opacity:.6">KST</span></div>
     <div class="chip">참석 <b id="cntPeople">0</b> · 메모 <b id="cntNotes">0</b></div>
     <button class="iconbtn" id="btnInvite" title="초대 · API 안내">⤴</button>
     <button class="iconbtn" id="btnRefresh" title="새로고침">⟳</button>
@@ -266,7 +275,7 @@ function layout() {
   const wide = VW > 1040;
   const free = wide
     ? { x0: 292, x1: VW - 348, y0: 66, y1: VH - 96 }
-    : { x0: 10, x1: VW - 10, y0: 58, y1: VH * 0.62 };
+    : { x0: 4, x1: VW - 4, y0: 92, y1: Math.max(240, VH - Math.min(VH * 0.40, 380) - 118) };
   const fw = Math.max(120, free.x1 - free.x0), fh = Math.max(120, free.y1 - free.y0);
   // S=40 기준 바운딩 박스
   const ref = 40, pts = [];
@@ -942,7 +951,8 @@ function drawOLED() {
 const FONT = "'Pretendard','Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',system-ui,sans-serif";
 
 function drawPickle(a, px, py, t) {
-  const s = S * 0.052;              // 기본 스케일
+  const sprK = VW < 700 ? 1.55 : 1;
+  const s = S * 0.052 * sprK;       // 기본 스케일
   const H = 1.14;                   // m
   const hpx = H * S;
   const bob = Math.sin(t * 2.1 + (a._ph || 0)) * hpx * 0.035 + (a._hop || 0);
